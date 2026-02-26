@@ -1082,9 +1082,6 @@ function buildCardHTML(place, showDistance) {
   const dirBtn = showDistance
     ? `<a class="btn-directions" href="${mapsDirectionsUrl(place)}" target="_blank" rel="noopener">↗ Directions</a>`
     : '';
-  const siteBtn = (place.url && place.url !== 'N/A' && place.url !== null)
-    ? `<a class="btn-site" href="${escHtml(place.url)}" target="_blank" rel="noopener">↗ Website</a>`
-    : '';
   const sourceHtml = (place.source && place.source !== 'Tokyo Guide')
     ? `<span class="card-source">via ${escHtml(place.source)}</span>`
     : '';
