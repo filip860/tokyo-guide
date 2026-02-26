@@ -249,6 +249,12 @@
     color: #999;
     white-space: nowrap;
   }
+  .card-rating {
+    font-size: 0.62rem;
+    color: #888;
+    white-space: nowrap;
+  }
+  .card-rating .star { color: #f5a623; }
   .card-distance {
     font-size: 0.7rem;
     font-weight: 700;
@@ -1085,6 +1091,10 @@ function buildCardHTML(place, showDistance) {
   const sourceHtml = (place.source && place.source !== 'Tokyo Guide')
     ? `<span class="card-source">via ${escHtml(place.source)}</span>`
     : '';
+  const rating = RATINGS[place.name];
+  const ratingHtml = rating != null
+    ? `<span class="card-rating"><span class="star">★</span> ${rating.toFixed(1)}</span>`
+    : '';
   return `
     <div class="place-card" style="--card-accent:${color}">
       <img class="card-image" src="/api/place-photo?name=${encodeURIComponent(place.name)}&address=${encodeURIComponent(place.address || '')}" alt="" loading="lazy" onerror="this.style.display='none'">
@@ -1094,6 +1104,7 @@ function buildCardHTML(place, showDistance) {
           <div class="card-meta">
             <span class="card-neighborhood">${escHtml(place.category)}</span>
             <span class="card-type-badge">${escHtml(place.type)}</span>
+            ${ratingHtml}
             ${sourceHtml}
             ${distHtml}
           </div>
@@ -1118,6 +1129,32 @@ function escHtml(str) {
 }
 
 // ── BROWSE LOGIC ─────────────────────────────────────────────────────
+// ── RATINGS ───────────────────────────────────────────────────────────
+let RATINGS = {};
+
+async function loadRatings() {
+  // Try cache first
+  const get = await fetch('/api/ratings');
+  if (get.ok) {
+    RATINGS = await get.json();
+    renderBrowse();
+    return;
+  }
+  // No cache — fetch fresh from Google
+  const places = PLACES.map(p => ({ name: p.name, address: p.address || '' }));
+  const post = await fetch('/api/ratings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(places),
+  });
+  if (post.ok) {
+    RATINGS = await post.json();
+    renderBrowse();
+  }
+}
+
+loadRatings().catch(() => {});
+
 let activeType = 'all';
 let activeNbhd = 'all';
 let activeSource = 'all';
@@ -1156,6 +1193,7 @@ function getFilteredPlaces() {
 
 function renderBrowse() {
   const filtered = getFilteredPlaces();
+  filtered.sort((a, b) => (RATINGS[b.name] ?? 0) - (RATINGS[a.name] ?? 0));
   const list = document.getElementById('browseList');
   const empty = document.getElementById('emptyState');
   const count = document.getElementById('resultsCount');
