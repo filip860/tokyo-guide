@@ -1070,13 +1070,6 @@ function mapsDirectionsUrl(place) {
   return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(q);
 }
 
-// ── HERO IMAGE HELPER ────────────────────────────────────────────────
-function simpleHash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
 // ── BUILD CARD HTML ──────────────────────────────────────────────────
 function buildCardHTML(place, showDistance) {
   const color = getTypeColor(place.type);
@@ -1094,10 +1087,9 @@ function buildCardHTML(place, showDistance) {
   const sourceHtml = (place.source && place.source !== 'Tokyo Guide')
     ? `<span class="card-source">via ${escHtml(place.source)}</span>`
     : '';
-  const imgSeed = simpleHash(place.name) % 1000;
   return `
     <div class="place-card" style="--card-accent:${color}">
-      <img class="card-image" src="https://picsum.photos/seed/${imgSeed}/600/130" alt="" loading="lazy">
+      <img class="card-image" src="/api/place-photo?name=${encodeURIComponent(place.name)}&address=${encodeURIComponent(place.address || '')}" alt="" loading="lazy" onerror="this.style.display='none'">
       <div class="card-top">
         <span class="card-type-icon">${emoji}</span>
         <div class="card-main">
