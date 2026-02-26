@@ -1133,9 +1133,9 @@ function escHtml(str) {
 let RATINGS = {};
 
 async function loadRatings() {
-  // Try cache first
+  // Try cache first (200 = cached data, 204 = no cache yet)
   const get = await fetch('/api/ratings');
-  if (get.ok) {
+  if (get.status === 200) {
     RATINGS = await get.json();
     renderBrowse();
     return;
