@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOKYO — Linn &amp; Filip</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f8f7f3;
+    --text: #1a1a1a;
+    --border: #1a1a1a;
+    --accent: #c41e3a;
+    --card: #ffffff;
+    --muted: #666;
+    --font: 'Courier New', Courier, monospace;
+  }
+
+  html { font-size: 14px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 16px 16px;
+    text-align: center;
+  }
+  .site-header h1 {
+    font-size: clamp(3rem, 12vw, 6rem);
+    font-weight: 700;
+    letter-spacing: 0.35em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .site-header .subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 6px;
+  }
+
+  /* ── STICKY TAB NAV ── */
+  .tab-nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 12px 8px;
+    font-family: var(--font);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── TAB PANELS ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── BROWSE CONTROLS ── */
+  .controls {
+    padding: 16px;
+    border-bottom: 1px solid #e0ded8;
+    background: var(--bg);
+    position: sticky;
+    top: 41px;
+    z-index: 90;
+  }
+  .search-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  #searchInput {
+    width: 100%;
+    padding: 9px 9px 9px 32px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #searchInput::placeholder { color: var(--muted); }
+  #searchInput:focus { border-color: var(--accent); }
+
+  .filter-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .chips-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+    margin-bottom: 10px;
+  }
+  .chips-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-family: var(--font);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
+  }
+  .chip:hover { background: #e8e6e0; }
+  .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  /* ── RESULTS COUNT ── */
+  .results-count {
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 16px;
+    border-bottom: 1px solid #e0ded8;
+  }
+
+  /* ── PLACE CARDS ── */
+  .places-list { padding: 0; }
+  .place-card {
+    background: var(--card);
+    border-bottom: 1px solid #e0ded8;
+    padding: 14px 14px 14px 18px;
+    border-left: 3px solid var(--card-accent, #999);
+    transition: background 0.15s;
+    cursor: default;
+  }
+  @media (hover: hover) {
+    .place-card:hover { background: #fdfcf8; }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .card-type-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+    margin-top: 1px;
+  }
+  .card-main { flex: 1; min-width: 0; }
+  .star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.4rem;
+    color: #ccc;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    min-width: 32px;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .star-btn.starred { color: #f5a623; }
+  .star-btn:active { transform: scale(1.2); }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .card-neighborhood {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .card-type-badge {
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--card-accent, #999);
+    border: 1px solid var(--card-accent, #999);
+    padding: 1px 5px;
+  }
+  .card-source {
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #999;
+    white-space: nowrap;
+  }
+  .card-distance {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .card-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .card-name-jp {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .card-desc {
+    font-size: 0.75rem;
+    color: #444;
+    line-height: 1.55;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .btn-maps {
+    display: inline-block;
+    font-family: var(--font);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-maps:hover { background: var(--text); color: var(--bg); }
+  .btn-directions {
+    display: inline-block;
+    font-family: var(--font);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-directions:hover { background: var(--accent); color: #fff; }
+  .btn-site {
+    display: inline-block;
+    font-family: var(--font);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+    padding: 5px 10px;
+    border: 1px solid #999;
+    color: #666;
+    background: transparent;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-site:hover { background: #666; color: var(--bg); }
+  .card-address {
+    font-size: 0.62rem;
+    color: var(--muted);
+    font-style: normal;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    padding: 48px 16px;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    display: none;
+  }
+
+  /* ── NEAR ME TAB ── */
+  .nearme-hero {
+    padding: 32px 16px 24px;
+    border-bottom: 1px solid #e0ded8;
+    text-align: center;
+  }
+  .nearme-hero p {
+    font-size: 0.75rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 300px;
+    margin: 0 auto 20px;
+  }
+  #locateBtn {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px;
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    font-family: var(--font);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #locateBtn:hover { background: #333; }
+  #locateBtn:disabled { background: #888; cursor: not-allowed; }
+
+  .nearme-status {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 10px;
+    min-height: 16px;
+  }
+  .nearme-status.error { color: var(--accent); }
+
+  #nearmeList { padding: 0; }
+
+  /* ── SCROLLBAR (desktop) ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #ccc; }
+
+  @media (min-width: 600px) {
+    .site-header { padding: 32px 24px 20px; }
+    .controls { padding: 16px 24px; }
+    .results-count { padding: 10px 24px; }
+    .place-card { padding: 18px 20px 18px 22px; }
+    .nearme-hero { padding: 40px 24px 28px; }
+  }
+
+  /* ── SYNC BAR ── */
+  .sync-bar {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e0ded8;
+    background: var(--bg);
+  }
+  .sync-actions {
+    display: flex;
+    gap: 8px;
+  }
+  .sync-btn {
+    flex: 1;
+    background: var(--text);
+    color: var(--bg);
+    border: 1px solid var(--text);
+    font-family: var(--font);
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 10px 8px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sync-btn-ghost {
+    background: transparent;
+    color: var(--text);
+  }
+  .sync-btn:active { opacity: 0.7; }
+  .sync-import {
+    margin-top: 10px;
+  }
+  .sync-import textarea {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 0.65rem;
+    padding: 8px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    resize: none;
+    margin-bottom: 8px;
+  }
+  .sync-import-row {
+    display: flex;
+    gap: 8px;
+  }
+  .sync-note {
+    font-size: 0.62rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 8px;
+    min-height: 1em;
+  }
+  .sync-note.ok { color: #2d7a27; }
+  .sync-note.err { color: var(--accent); }
+
+  @media (min-width: 900px) {
+    html { font-size: 15px; }
+    .places-list { max-width: 740px; margin: 0 auto; }
+    #nearmeList { max-width: 740px; margin: 0 auto; }
+    #starredList { max-width: 740px; margin: 0 auto; }
+    .sync-bar { max-width: 740px; margin: 0 auto; border-left: 1px solid #e0ded8; border-right: 1px solid #e0ded8; }
+    .controls { max-width: none; }
+    .results-count { max-width: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>TOKYO</h1>
+  <p class="subtitle">A Curated Guide for Linn &amp; Filip</p>
+</header>
+
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="browse" aria-selected="true">Browse</button>
+  <button class="tab-btn" role="tab" data-tab="nearme" aria-selected="false">Near Me</button>
+  <button class="tab-btn" role="tab" data-tab="starred" aria-selected="false">★ Saved</button>
+</nav>
+
+<!-- BROWSE TAB -->
+<section id="tab-browse" class="tab-panel active" role="tabpanel">
+  <div class="controls">
+    <div class="search-wrap">
+      <span class="search-icon">⌕</span>
+      <input type="search" id="searchInput" placeholder="Search places, neighbourhoods…" autocomplete="off" />
+    </div>
+
+    <div class="filter-label">Type</div>
+    <div class="chips-row" id="typeChips">
+      <button class="chip active" data-type="all">All</button>
+      <button class="chip" data-type="restaurant">Restaurant</button>
+      <button class="chip" data-type="cafe">Café</button>
+      <button class="chip" data-type="shop">Shop</button>
+      <button class="chip" data-type="vintage">Vintage</button>
+      <button class="chip" data-type="gallery">Gallery</button>
+      <button class="chip" data-type="museum">Museum</button>
+      <button class="chip" data-type="bar">Bar</button>
+      <button class="chip" data-type="bookshop">Bookshop</button>
+      <button class="chip" data-type="architecture">Architecture</button>
+      <button class="chip" data-type="other">Other</button>
+    </div>
+
+    <div class="filter-label">Neighbourhood</div>
+    <div class="chips-row" id="neighborhoodChips">
+      <button class="chip active" data-nbhd="all">All</button>
+    </div>
+
+    <div class="filter-label">Source</div>
+    <div class="chips-row" id="sourceChips">
+      <button class="chip active" data-source="all">All</button>
+      <button class="chip" data-source="Swedish Friend">Swedish Friend</button>
+      <button class="chip" data-source="Max Schiller">Max Schiller</button>
+      <button class="chip" data-source="Carl Lidefelt">Carl Lidefelt</button>
+    </div>
+  </div>
+
+  <div class="results-count" id="resultsCount">Showing 185 places</div>
+
+  <div class="places-list" id="browseList"></div>
+  <div class="empty-state" id="emptyState">No places found. Try a different search.</div>
+</section>
+
+<!-- NEAR ME TAB -->
+<section id="tab-nearme" class="tab-panel" role="tabpanel">
+  <div class="nearme-hero">
+    <p>Find Tokyo places sorted by distance from your current location.</p>
+    <button id="locateBtn">↯ Find places near me</button>
+    <div class="nearme-status" id="nearmeStatus"></div>
+  </div>
+  <div class="nearme-filters" id="nearmeFilters" style="display:none">
+    <div class="controls" style="top:41px">
+      <div class="filter-label">Filter by type</div>
+      <div class="chips-row" id="nearmeTypeChips">
+        <button class="chip active" data-type="all">All</button>
+        <button class="chip" data-type="restaurant">Restaurant</button>
+        <button class="chip" data-type="cafe">Café</button>
+        <button class="chip" data-type="shop">Shop</button>
+        <button class="chip" data-type="vintage">Vintage</button>
+        <button class="chip" data-type="gallery">Gallery</button>
+        <button class="chip" data-type="museum">Museum</button>
+        <button class="chip" data-type="bar">Bar</button>
+        <button class="chip" data-type="bookshop">Bookshop</button>
+        <button class="chip" data-type="architecture">Architecture</button>
+        <button class="chip" data-type="other">Other</button>
+      </div>
+    </div>
+  </div>
+  <div id="nearmeList"></div>
+</section>
+
+<!-- STARRED TAB -->
+<section id="tab-starred" class="tab-panel" role="tabpanel">
+  <div class="nearme-hero" id="starredHero">
+    <p>Star any place to save it here. Synced across all your devices.</p>
+  </div>
+  <div class="places-list" id="starredList"></div>
+  <div class="empty-state" id="starredEmpty">No saved places yet. Tap ☆ on any card to save it.</div>
+</section>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────
+const PLACES = [
+  {"name":"Prada Tokyo Aoyama","name_jp":"プラダ 青山店","category":"AOYAMA","type":"shop","address":"〒107-0062 Tokyo, 5 Chome-2-6 Minami-Aoyama","phone":"+81 3-6418-0400","url":"http://www.prada.com","description":"One of the most distinctive works of architecture in Tokyo, designed by Herzog & de Meuron. The six-story building has a green glass facade that bulges from a diagonal grid forming its structural skin."},
+  {"name":"MIU MIU Aoyama Store","name_jp":"ミュウミュウ 青山店","category":"AOYAMA","type":"shop","address":"3 Chome-17-8 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-6434-8591","url":"http://www.miumiu.com","description":"Herzog & de Meuron-designed 720-square-metre box-like shop for Miu Miu on Miyuki Street in the Aoyama district."},
+  {"name":"UNDERCOVER Aoyama","name_jp":"アンダーカバー 青山","category":"AOYAMA","type":"shop","address":"〒107-0062 Tokyo, Minato City, Minamiaoyama, 5 Chome-3-22 BLEU CINQ POINT A 1F, B1F","phone":"+81 3-5778-4805","url":"http://www.undercoverism.com","description":"Undercover designer Jun Takahashi's store. Browse the ladies selection on the ground floor and the basement housing the men's collection and Undercover's side labels including 'the Shepherd'."},
+  {"name":"Tom Wood Aoyama","name_jp":null,"category":"AOYAMA","type":"shop","address":"3 Chome-14-20 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-6447-5528","url":"http://www.tomwoodproject.com","description":"Norwegian jewellery company focusing on timeless, handcrafted jewellery. Based on the essence of simplicity, innovation and Scandinavian functionalism."},
+  {"name":"GENTLE MONSTER Aoyama","name_jp":null,"category":"AOYAMA","type":"shop","address":"5 Chome-3-2 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-6419-7283","url":"http://www.gentlemonster.com","description":"Gentle Monster Aoyama Flagship store offering a new sensory experience through a deep exploration of the human psyche under the theme '3.0'."},
+  {"name":"D.D.Jam","name_jp":null,"category":"ARAKAWA","type":"shop","address":"〒116-0013 Tokyo, Arakawa City, Nishinippori, 2 Chome-25-1, Station Garden Tower, 1F","phone":"+81 3-6316-0917","url":"http://www.ddjam.jp","description":"One of Japan's only disc sport stores."},
+  {"name":"MAZ","name_jp":null,"category":"CHIYODA","type":"restaurant","address":"〒102-0094 Tokyo, Chiyoda City, Kioicho, 1-3 東京ガーデンテラス 3F","phone":"+81 3-6272-8513","url":"http://www.maztokyo.jp","description":"A new gastronomic project by Virgilio Martinez, chef of Central in Peru. Peruvian biodiversity-inspired cuisine based on the philosophy of Mater Iniciativa."},
+  {"name":"Kioi Seido","name_jp":"紀尾井清堂","category":"CHIYODA","type":"architecture","address":"3 Kioicho, Chiyoda City, Tokyo 102-0094","phone":null,"url":"N/A","description":"A stunning building in Tokyo with no specific use or function. A concrete cube 15 meters on a side was enclosed with a glass membrane and lifted 3.6 meters. By NAITO ARCHITECT & ASSOCIATES."},
+  {"name":"Santosham","name_jp":"南インドの定食と軽食 三燈舎","category":"CHIYODA","type":"restaurant","address":"〒101-0052 Tokyo, Chiyoda City, Kanda Ogawamachi, 3 Chome-2","phone":"+81 50-3697-2547","url":"http://www.santosham.tokyo","description":"South Indian snacks and set meals. The chef, a native of southern India, and a Japanese couple convey the authentic flavours of the region. Michelin-listed."},
+  {"name":"Oedo Antique Market","name_jp":null,"category":"CHIYODA","type":"vintage","address":"3 Chome-5 Marunouchi, Chiyoda City, Tokyo 100-0005","phone":null,"url":"http://www.antique-market.jp","description":"The largest outdoor antique market in Japan, held every first and third Sunday at Tokyo International Forum. Admission free, 9:00-16:00. Closed in case of rain."},
+  {"name":"MOMAT","name_jp":"東京国立近代美術館","category":"CHIYODA","type":"museum","address":"3-1 Kitanomarukoen, Chiyoda City, Tokyo 102-8322","phone":"+81 50-5541-8600","url":"http://www.momat.go.jp","description":"The National Museum of Modern Art, Tokyo. Houses Japanese and international modern and contemporary art."},
+  {"name":"Kungyokudo KITTE Marunouchi Store","name_jp":"薫玉堂 KITTE丸の内店","category":"CHIYODA","type":"shop","address":"〒100-7004 Tokyo, Chiyoda City, Marunouchi, 2 Chome-7-2 4階 KITTE Marunouchi","phone":"+81 3-6551-2630","url":"http://www.kungyokudo.co.jp","description":"Japan's oldest incense supplier, established in the third year of Bunroku era (Year 1594). A long-established incense company blending natural perfume traditions."},
+  {"name":"anagra - MATTER","name_jp":null,"category":"CHIYODA","type":"gallery","address":"〒102-0093 Tokyo, Chiyoda City, Hirakawach, 1 Chome-8-9 地下一階","phone":null,"url":"http://www.anagra-tokyo.com","description":"Not just a club, gallery or restaurant - at Anagra you can do anything you want. Always offers exciting moments with high emotion in the unique city of Hanzomon."},
+  {"name":"Ippodo Tea Tokyo Marunouchi","name_jp":"一保堂茶舗 東京丸の内店","category":"CHIYODA","type":"shop","address":"〒100-0005 Tokyo, Chiyoda City, Marunouchi, 3 Chome-1-1 仲通り国際ビル1階","phone":"+81 3-6212-0202","url":"http://www.global.ippodo-tea.co.jp","description":"Tea shop with origins dating to 1717. Devoted to providing high quality Japanese tea."},
+  {"name":"Kanda Matsuya","name_jp":"神田まつや 本店","category":"CHIYODA","type":"restaurant","address":"1 Chome-13 Kanda Sudacho, Chiyoda City, Tokyo 101-0041","phone":"+81 3-3251-1556","url":"http://www.kanda-matsuya.jp","description":"One of Tokyo's most venerable noodle joints, in business since 1884. The current building dates to 1924. Renowned for handmade soba and power-packed dashi."},
+  {"name":"Kanda Yabu Soba","name_jp":"かんだやぶそば","category":"CHIYODA","type":"restaurant","address":"〒101-0063 Tokyo, Chiyoda City, Kanda Awajicho, 2 Chome-10","phone":"+81 3-3251-0287","url":"http://www.yabusoba.net","description":"One of Tokyo's oldest soba restaurants, serving a taste of old Edo since the beginning. Renowned for slender hand-cut noodles served with dipping sauce."},
+  {"name":"Ninomaru Garden","name_jp":"二の丸庭園","category":"CHIYODA","type":"garden","address":"1-1 Chiyoda, Chiyoda City, Tokyo 100-0001","phone":"+81 3-3213-1111","url":"N/A","description":"The public Japanese garden of the Tokyo Imperial Palace, found in the secondary circle of defence (the Ninomaru second circle). Historical garden reconstructed in the 1960s."},
+  {"name":"Moonlight Gear","name_jp":"ムーンライトギア 東京店","category":"CHIYODA","type":"shop","address":"2 Chome-8-10 Iwamotocho, Chiyoda City, Tokyo 101-0032","phone":"+81 3-6884-8143","url":"http://www.moonlight-gear.com","description":"A shop selling lightweight mountain gear for fun night outings in the mountains. Carries reliable and original tools from all over the world."},
+  {"name":"Anegawa bookstores Nyankodo","name_jp":"猫本専門 神保町 にゃんこ堂","category":"CHIYODA","type":"bookshop","address":"〒101-0051 Tokyo, Chiyoda City, Kanda Jinbocho, 2 Chome-2 姉川書店","phone":"+81 3-3263-5755","url":"http://www.nyankodo.jp","description":"A bookstore selling only cat-themed books and merchandise in Jimbocho's famous used bookstore neighbourhood."},
+  {"name":"The North Face PLAY","name_jp":null,"category":"CHIYODA","type":"shop","address":"〒100-0006 Tokyo, Chiyoda City, Yurakucho, 1 Chome-1-2 東京ミッドタウン日比谷 2F","phone":"+81 3-6812-7144","url":"http://www.instagram.com/thenorthface.jp","description":"THE NORTH FACE PURPLE LABEL is a limited collaborated label with nanamica."},
+  {"name":"The North Face FLIGHT","name_jp":null,"category":"CHIYODA","type":"shop","address":"〒100-0005 Tokyo, Chiyoda City, Marunouchi, 1 Chome-4-1, Marunouchi Eiraku Building, 1F","phone":"+81 3-3211-8555","url":"http://www.instagram.com/thenorthface.jp","description":"THE NORTH FACE PURPLE LABEL is a limited collaborated label with nanamica."},
+  {"name":"and wander OUTDOOR GALLERY with PAPERSKY","name_jp":null,"category":"CHIYODA","type":"shop","address":"〒100-0005 Tokyo, Chiyoda City, Marunouchi, 3 Chome-3-1, Shin-Tokyo Building, 1F","phone":"+81 3-6407-8179","url":"http://www.andwander.com","description":"and wander outdoor clothing brand launched in 2011 by designers Keita Ikeuchi and Mihoko Mori, with an outdoor gallery collaboration with PAPERSKY."},
+  {"name":"Super Labo Store Tokyo","name_jp":null,"category":"CHIYODA","type":"shop","address":"Japan, 〒101-0064 Tokyo, Chiyoda City, Sarugakucho, 1 Chome-4-11 遠藤ビル","phone":"+81 3 6882-4874","url":"http://www.superlabostoretokyo.com","description":"A concept store themed on photography. Available in the shop are photo books, original and vintage prints, multiples, portfolio box sets, special edition prints, slipcase editions, original T-shirts and tote bags."},
+  {"name":"Haibara","name_jp":"榛原（はいばら）日本橋本店","category":"CHUO/CITY","type":"shop","address":"〒103-0027 Tokyo, Chuo City, Nihonbashi, 2 Chome-7-1 東京日本橋タワー","phone":"+81 3-3272-3801","url":"http://www.haibara.co.jp","description":"A heritage washi brand preserving 200 years of tradition. Established in 1806 in Nihonbashi. Carries washi (traditional Japanese paper), chiyogami, letter paper, uchiwa, and kipu accessories."},
+  {"name":"Udon Maruka","name_jp":"うどん 丸香","category":"CHIYODA","type":"restaurant","address":"〒101-0052 Tokyo, Chiyoda City, Kanda Ogawamachi, 3 Chome-16-1 ニュー駿河台ビル 1F","phone":"+81 3-3294-1320","url":"N/A","description":"Destination udon restaurant with a small counter. Known for thick noodles in a deep umami broth. Often has 45-minute queues."},
+  {"name":"PARCEL Gallery","name_jp":null,"category":"CHUO","type":"gallery","address":"DDD hotel 1F, 2-2-1 Nihonbashi-Bakurocho, Chuo-ku, Tokyo","phone":null,"url":"http://www.parceltokyo.jp","description":"Contemporary art gallery presenting solo and group exhibitions. Currently presenting 'Come From Somewhere' by KINJO."},
+  {"name":"Heiwa Doburoku Brewery Kabutocho","name_jp":"平和どぶろく兜町醸造所","category":"CHUO/CITY","type":"bar","address":"〒103-0026 Tokyo, Chuo City, Nihonbashikabutocho, 8番5号 1階 KITOKI","phone":"+81 3-6264-9457","url":"http://www.instagram.com/heiwadoburoku_kabutocho","description":"Brewery pub with freshly brewed doburoku on site. Interior decorated with Wakayama cedar. Offers fresh doburoku, sake, and craft beer."},
+  {"name":"Tempura Fukamachi","name_jp":"てんぷら深町","category":"CHUO/CITY","type":"restaurant","address":"Rbm Kyobashi Bldg., 101 2-5-2AM Kyobashi, Chuo City, Tokyo 104-0031","phone":"+81 3-5250-8777","url":"N/A","description":"Chef Masao Fukamachi has been walking the path of the chef for half a century. Renowned for Edomae tempura craftsmanship."},
+  {"name":"Nihombashi Kakigaracho Sugita","name_jp":"日本橋 蛎殻町 すぎた","category":"CHUO/CITY","type":"restaurant","address":"〒103-0014 Tokyo, Chuo City, Nihonbashikakigaracho, 1 Chome-33-6 ビューハイツ日本橋 地下1階","phone":"+81 3-3669-3855","url":"N/A","description":"Highly sought-after sushi restaurant. Takes reservations more than 2 months in advance for repeating customers. Highly recommended with alternative restaurants advised."},
+  {"name":"Mibu","name_jp":"壬生","category":"CHUO/GINZA","type":"restaurant","address":"〒104-0061 Tokyo, Chuo City, Ginza, 3 Chome-2-13 江戸常ビル","phone":null,"url":"N/A","description":"A culinary legend. Invitation-only dining experience. No menu, no website, no published opening times. Ferran Adria lists Mibu in his top five places to eat."},
+  {"name":"Okuno Building","name_jp":"奥野ビル（旧銀座アパートメント）","category":"CHUO/GINZA","type":"architecture","address":"1 Chome-9-8 Ginza, Chuo City, Tokyo 104-0061","phone":null,"url":"N/A","description":"A time capsule apartment building in Ginza built in the Showa era (1926-1989). Prime example of early modernist architecture with many lots now turned into antique shops and art galleries."},
+  {"name":"Kapital","name_jp":null,"category":"CHUO/GINZA","type":"shop","address":"〒104-0061 Tokyo, Chuo City, Ginza, 1 Chome-21-12 ブルーボックスビル 1階・3階","phone":"+81 3-6263-0485","url":"http://www.kapital.jp","description":"The KAPITAL brand from Okayama prefecture's Kojima, known as the birthplace of Japanese jeans. Emphasises exclusive use of manual processes since 1984."},
+  {"name":"Sushi KARAKU","name_jp":"鮨 からく","category":"CHUO/GINZA","type":"restaurant","address":"〒104-0061 Tokyo, Chuo City, Ginza, 5 Chome-6-16 ビル 地下一階","phone":"+81 3-3571-2250","url":"N/A","description":"Edomae Sushi restaurant pairing sushi with wine by a certified wine sommelier. Features counter and private room with sunken kotatsu."},
+  {"name":"Jugetsudo Tea Shop & Cafe","name_jp":"寿月堂 銀座歌舞伎座店","category":"CHUO/GINZA","type":"cafe","address":"〒104-0061 Tokyo, Chuo City, Ginza, 4 Chome-12-15 歌舞伎座タワー5階","phone":"+81 3-6278-7626","url":"N/A","description":"Designed by famed architect Kengo Kuma. A store and cafe where guests can enjoy all things tea. The intriguing design characterized by warped bamboo is inspired by matcha whisks and traditional umbrellas."},
+  {"name":"MMM - Maison des Musees du Monde","name_jp":"メゾン・デ・ミュゼ・デュ・モンド","category":"CHUO/GINZA","type":"gallery","address":"〒104-0061 Tokyo, Chuo City, Ginza, 7 Chome-7-4 地下1階〜3階 DNP銀座アネックス","phone":"+81 3-3574-2380","url":"http://www.mmm-ginza.org","description":"A curated gallery and bookshop bringing together museum books and art from around the world."},
+  {"name":"Kohgen","name_jp":"香原 銀座本店","category":"CHUO/GINZA","type":"shop","address":"4 Chome-14-15 Ginza, Chuo City, Tokyo 104-0061","phone":"+81 3-6853-8811","url":"http://www.kohgen.com","description":"Carries incense from every major incense brand in Japan. The lower floor has packaged incense; the second floor has incense ingredients as well as Buddhist bracelets."},
+  {"name":"Koju","name_jp":"香十 銀座本店","category":"CHUO/GINZA","type":"shop","address":"〒104-0061 Tokyo, Chuo City, Ginza, 4 Chome-9-1 B1F","phone":"+81 3-6264-2450","url":"http://www.koju.co.jp/","description":"Incense shop offering Oko and Osenko incense sticks for various purposes. Popular product Kunoeka transmits the traditional culture of scenting clothes."},
+  {"name":"Gallery Koyanagi","name_jp":"ギャラリー小柳","category":"CHUO/GINZA","type":"gallery","address":"〒104-0061 Tokyo, Chuo City, Ginza, 1 Chome-7-5 銀座小柳ビル 9F","phone":"+81 3-3561-1896","url":"http://www.gallerykoyanagi.com","description":"Contemporary art gallery in Ginza holding regular exhibitions including collaborations with Morioka Shoten."},
+  {"name":"HANDS Ginza","name_jp":null,"category":"CHUO/GINZA","type":"shop","address":"〒104-0061 Tokyo, Chuo City, Ginza, 2 Chome-2-14 1 5〜9F マロニエゲート","phone":"+81 3-3538-0109","url":"http://www.info.hands.net","description":"Large Japanese variety store offering a wide range of products for creative lifestyle."},
+  {"name":"Hakkoku","name_jp":"はっこく","category":"CHUO/GINZA","type":"restaurant","address":"〒104-0061 Tokyo, Chuo City, Ginza, 6 Chome-7-6 ラペビル 3F","phone":"+81 3-6280-6555","url":"N/A","description":"Sushi restaurant with a fresh perspective. Ordering is Okuomi (a la carte) rather than Omakase. Chef Hiroyuki Sato serves a maximum of six guests."},
+  {"name":"Miwa Shrine","name_jp":"三輪神社","category":"CHUO/GINZA","type":"shrine","address":"〒104-0061 Tokyo, Chuo City, Ginza, 6 Chome-9-5 屋上","phone":"+81 3-3571-5051","url":"http://www.ginza-komatsu.co.jp","description":"A rooftop shrine and garden atop Ginza Komatsu West. Previously called Ginza's 'shrine in the sky'. Features three torii gateways made from 300-year-old Japanese Kiso cypress trees from Mt. Ontake."},
+  {"name":"Ginza Graphic Gallery","name_jp":"ギンザ・グラフィック・ギャラリー","category":"CHUO/GINZA","type":"gallery","address":"〒104-0061 Tokyo, Chuo City, Ginza, 7 Chome-7-2 DNP 銀座ビル 1F","phone":"+81 3-3571-5206","url":"http://www.dnpfcp.jp/gallery/ggg_e/","description":"International graphic design gallery holding annual exhibitions. Known for the Tokyo TDC (Type Directors Club) Exhibition."},
+  {"name":"High Five","name_jp":null,"category":"CHUO/GINZA","type":"bar","address":"〒104-0061 Tokyo, Chuo City, Ginza, 5 Chome-4-15 Efflore Ginza5 Bldg, B1F","phone":"+81 3-3571-5815","url":"http://www.barhighfive.com/","description":"A legendary bar opened in 2008, run by Ueno. Known for strong relationships with bartenders from all over the world and can introduce visitors to bars and bartenders in most countries."},
+  {"name":"Star Bar Ginza","name_jp":"スタア・バー・ギンザ","category":"CHUO/GINZA","type":"bar","address":"〒104-0061 Tokyo, Chuo City, Ginza, 1 Chome-5-13 MODERNS GINZA B1F","phone":"+81 3-3535-8005","url":"http://www.starbar.jp","description":"A traditional Japanese Ginza style bar open since 2000. Famous for Ninja Ice (natural ice and special machine ice making). Creates classic cocktails with Star Bar's originality."},
+  {"name":"Maison Hermes","name_jp":"銀座メゾンエルメス フォーラム","category":"CHUO/GINZA","type":"shop","address":"〒104-0061 Tokyo, Chuo City, Ginza, 5 Chome-4-1 8階","phone":"+81 3-3569-3300","url":"http://www.fondationdentreprisehermes.org","description":"Designed by Renzo Piano, the building is entirely wrapped in a crystal skin using 13,000 glass modules. The gallery on the 8th floor holds regular exhibitions."},
+  {"name":"Sushiya","name_jp":"すし家","category":"CHUO/GINZA","type":"restaurant","address":"〒104-0061 Tokyo, Chuo City, Ginza, 6 Chome-4-16, Hanatsubaki Bldg, 2階","phone":"+81 3-3571-7900","url":"N/A","description":"Exceptional sushi experience with highest quality seafood purchased directly from Toyosu Fish Market. Chef Mamoru Hashimoto serves guests with dedication. L-shaped counter seating."},
+  {"name":"Dover Street Market Ginza","name_jp":"ドーバー ストリート マーケット 銀座","category":"CHUO/GINZA","type":"shop","address":"6 Chome-9-5 Ginza, Chuo City, Tokyo 104-0061","phone":"+81 3-6228-5080","url":"http://www.ginza.doverstreetmarket.com","description":"Conceived by Rei Kawakubo and Adrian Joffe, Dover Street Market is a place for creators from various fields to gather, encounter and collide with each other."},
+  {"name":"Bar Lupin","name_jp":"ルパン","category":"CHUO/GINZA","type":"bar","address":"〒104-0061 Tokyo, Chuo City, Ginza, 5 Chome-5-11 塚本不動産ビル 地下","phone":"+81 3-3571-0750","url":"http://www.lupin.co.jp","description":"Open since 1928 on a quiet side street in Ginza. A gathering place for Japanese literati. Named for the fictional gentleman thief by Maurice Leblanc. Known for literary clientele and old school cocktails."},
+  {"name":"Sukiyabashi Jiro Honten","name_jp":"すきやばし次郎","category":"CHUO/GINZA","type":"restaurant","address":"〒104-0061 Tokyo, Chuo City, Ginza, 4 Chome-2-15 塚本総業ビルB1階","phone":"+81 3-3535-3600","url":"http://www.sushi-jiro.jp","description":"World-renowned sushi restaurant serving only the omakase tasting menu at a minimum of ¥55,000 per person. The legendary restaurant of Jiro Ono."},
+  {"name":"Tsutaya Books Ginza","name_jp":"銀座 蔦屋書店","category":"CHUO/GINZA","type":"bookshop","address":"〒104-0061 Tokyo, Chuo City, Ginza, 6 Chome-10-1 SIX6階","phone":"+81 3-3575-7755","url":"http://www.store.tsite.jp","description":"Known as the World's Best Art Bookstore. Houses standard books, big books and valuable vintage texts along with a stationery selection offering a connection to Japanese beauty."},
+  {"name":"Tachigui Sushi Akira Tsukiji branch","name_jp":"立喰い寿司 あきら 築地店","category":"CHUO/TSUKIJI","type":"restaurant","address":"〒104-0045 Tokyo, Chuo City, Tsukiji, 4 Chome-7-5 築地Kyビル B1","phone":"+81 80-4126-3538","url":"http://www.instagram.com/stand_up_sushiakira","description":"Standing sushi bar at Tsukiji. Walk-in only, no reservations."},
+  {"name":"twelvebooks co., ltd.","name_jp":null,"category":"KATSUSHIKA","type":"bookshop","address":"SKWAT/twelvebooks, 3-26-4 Nishikameari Katsushika-ku, Tokyo 125-0002","phone":null,"url":"http://www.twelve-books.com","description":"Independent bookshop under a railway viaduct of JR Joban Line between Ayase and Kameari station. Open for special events."},
+  {"name":"Bear Pond Espresso","name_jp":null,"category":"KITAZAWA","type":"cafe","address":"〒155-0031 Tokyo, Setagaya City, Kitazawa, 2 Chome-36-12 ベアーポンド","phone":"+81 3-5454-2486","url":"http://www.bearpondespresso.com","description":"Coffee roaster with coffee flavor and body born from a master roaster's creativity and passion for New York taste."},
+  {"name":"KOFFEE MAMEYA Kakeru","name_jp":null,"category":"KOTO","type":"cafe","address":"2 Chome-16-14 Hirano, Koto City, Tokyo 135-0023","phone":"+81 50-1807-6375","url":"http://www.koffee-mameya.com","description":"Exquisite coffee experience in a renovated warehouse in Kiyosumi-Shirakawa. Based on the Japanese concept of kodawari - aspiring to perfection and attention to detail."},
+  {"name":"Museum of Contemporary Art Tokyo (MOT)","name_jp":"東京都現代美術館（MOT）","category":"KOTO","type":"museum","address":"4 Chome-1-1 Miyoshi, Koto City, Tokyo 135-0022","phone":"+81 3-5245-4111","url":"http://www.mot-art-museum.jp","description":"Tokyo's premier contemporary art museum holding major international and Japanese exhibitions."},
+  {"name":"Mikawa Zezankyo","name_jp":"みかわ是山居","category":"KOTO","type":"restaurant","address":"1 Chome-3-1 Fukuzumi, Koto City, Tokyo 135-0032","phone":"+81 3-3643-8383","url":"http://www.mikawa-zezankyo.jimdofree.com","description":"Tempura as good as it gets. Off-the-beaten-track location with eccentric decor. Counter seating."},
+  {"name":"Kiyosumi Gardens","name_jp":"清澄庭園","category":"KOTO","type":"garden","address":"3 Chome-3-9 Kiyosumi, Koto City, Tokyo 135-0024","phone":"+81 3-3641-5892","url":"N/A","description":"Landscape garden originally the residence of an Edo-era merchant, later donated to the city and opened to the public in 1932. Features famous landscape stones acquired from across Japan."},
+  {"name":"LAND","name_jp":null,"category":"MEGURO","type":"restaurant","address":"〒153-0064 Tokyo, Meguro City, Shimomeguro, 2 Chome-21-28 セントヒルズ目黒 2F","phone":"+81 80-3732-9295","url":"http://www.landtheman.com","description":"Original Japanese style curry. Open Thursday to Sunday. Chef-designed restaurant where the atmosphere and food are synchronized."},
+  {"name":"Udatsu Sushi","name_jp":"宇田津 鮨","category":"MEGURO","type":"restaurant","address":"2 Chome-48-10 Kamimeguro, Meguro City, Tokyo 153-0051","phone":"+81 50-3550-5938","url":"http://www.udatsu-sushi.jp","description":"A humble neighborhood sushi restaurant in Nakameguro. Chef/owner Hisashi Udatsu brings together top-quality ingredients with world-class technique in an interior immersed in art."},
+  {"name":"Onibus Coffee","name_jp":"オニバスコーヒー 中目黒","category":"MEGURO","type":"cafe","address":"2 Chome-14-1 Kamimeguro, Meguro City, Tokyo 153-0051","phone":"+81 3-6412-8683","url":"http://www.onibuscoffee.com","description":"Popular specialty coffee shop in Nakameguro."},
+  {"name":"SO","name_jp":null,"category":"MEGURO","type":"shop","address":"1 Chome-6-52 Aobadai, Meguro City, Tokyo 153-0042","phone":"+81 36-4165-549","url":"http://www.so-shopandhostel.com","description":"Combined shop and hostel in Nakameguro."},
+  {"name":"dessin","name_jp":"デッサン","category":"MEGURO","type":"bookshop","address":"2 Chome-11-1 Kamimeguro, Meguro City, Tokyo 153-0051","phone":"+81 3-3710-2310","url":"http://www.dessinweb.jp","description":"Independent bookshop in Nakameguro."},
+  {"name":"KAN","name_jp":"東山KAN","category":"MEGURO","type":"restaurant","address":"〒153-0043 Tokyo, Meguro City, Higashiyama, 2 Chome-1-1 第5 1階 オリエンタル東山","phone":"+81 3-3792-5282","url":"http://www.instagram.com/higasiyamakan","description":"Restaurant in Higashiyama, Meguro."},
+  {"name":"balance tokyo","name_jp":null,"category":"MEGURO","type":"shop","address":"〒153-0042 Tokyo, Meguro City, Aobadai, 1 Chome-15-1 AK－1ビル B1F","phone":"+81 3-5784-2669","url":"http://www.balance2022.stores.jp","description":"Shop in Aobadai, Meguro."},
+  {"name":"Have a good time","name_jp":null,"category":"MEGURO","type":"shop","address":"〒153-0061 Tokyo, Meguro City, Nakameguro, 1 Chome-4-18 サングリア中目黒","phone":null,"url":"http://www.have-a-goodtime.com","description":"Shop in Nakameguro."},
+  {"name":"Yakumo Saryo","name_jp":"八雲茶寮","category":"MEGURO","type":"restaurant","address":"3 Chome-4-7 Yakumo, Meguro City, Tokyo 152-0023","phone":"+81 3-5731-1620","url":"http://www.yakumosaryo.jp","description":"Traditional Japanese restaurant and tea house in a serene setting."},
+  {"name":"Breakfast Club Tokyo","name_jp":"ブレックファストクラブ 東京","category":"MEGURO","type":"restaurant","address":"2 Chome-2-4 Higashiyama, Meguro City, Tokyo 153-0043","phone":"+81 3-6886-8872","url":"http://www.instagram.com/breakfastclubtokyo","description":"Breakfast and brunch restaurant in Higashiyama, Meguro."},
+  {"name":"Japan Folk Crafts Museum","name_jp":"日本民藝館","category":"MEGURO","type":"museum","address":"4 Chome-3-33 Komaba, Meguro City, Tokyo 153-0041","phone":"+81 3-3467-4527","url":"http://www.mingeikan.or.jp","description":"Museum dedicated to mingei (folk crafts) art and craft objects selected for beauty in daily use."},
+  {"name":"YZ Store","name_jp":null,"category":"MEGURO","type":"shop","address":"〒153-0042 Tokyo, Meguro City, Aobadai, 1 Chome-21-9 グリーンヒル三光 101","phone":null,"url":"http://www.yz-store.com","description":"Shop in Aobadai, Meguro."},
+  {"name":"Seirinkan","name_jp":"聖林館","category":"MEGURO","type":"restaurant","address":"2 Chome-6-4 Kamimeguro, Meguro City, Tokyo 153-0051","phone":"+81 3-3714-5160","url":"http://www.theseirinkan.com","description":"Celebrated pizza restaurant in Nakameguro."},
+  {"name":"Fugensha","name_jp":"ふげん社","category":"MEGURO","type":"gallery","address":"5 Chome-3-12 Shimomeguro, Meguro City, Tokyo 153-0064","phone":"+81 3-6264-3665","url":"http://www.fugensha.jp","description":"Gallery and bookshop in Meguro."},
+  {"name":"Tokyo Photographic Art Museum","name_jp":"東京都写真美術館","category":"MEGURO","type":"museum","address":"〒153-0062 Tokyo, Meguro City, Mita, 1 Chome-13-3 恵比寿ガーデンプレイス内","phone":"+81 3-3280-0099","url":"http://www.topmuseum.jp","description":"Japan's first and only museum dedicated to photography and visual arts."},
+  {"name":"SAVOY Azabujuban","name_jp":"麻布十番本店","category":"MINATO","type":"restaurant","address":"〒106-0045 Tokyo, Minato City, Azabujuban, 2 Chome-20-12 オリエント麻布 1階","phone":"+81 3-6665-8102","url":"http://www.instagram.com/savoy_azabujuban","description":"Renowned pizza restaurant in Azabujuban."},
+  {"name":"Zuisho-ji","name_jp":"瑞聖寺","category":"MINATO","type":"temple","address":"3 Chome-2-19 Shirokanedai, Minato City, Tokyo 108-0071","phone":"+81 3-3443-5525","url":"N/A","description":"Obaku-sect Zen Buddhist temple in Shirokanedai, notable for its architecture."},
+  {"name":"Spiral","name_jp":"スパイラル","category":"MINATO","type":"gallery","address":"5 Chome-6-23 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3498-1171","url":"http://www.spiral.co.jp","description":"Multi-purpose arts complex in Aoyama with gallery, restaurant and shop."},
+  {"name":"PGI - Photo Gallery International","name_jp":null,"category":"MINATO","type":"gallery","address":"〒106-0044 Tokyo, Minato City, Higashiazabu, 2 Chome-3-4 TKBビル 3F","phone":"+81 3-5114-7935","url":"http://www.pgi.ac","description":"Dedicated photography gallery in Higashi Azabu."},
+  {"name":"Reiyukai Shakaden Hall","name_jp":"霊友会釈迦殿","category":"MINATO","type":"temple","address":"1 Chome-7-8 Azabudai, Minato City, Tokyo 106-0041","phone":"+81 3-5563-2500","url":"http://www.reiyukaiglobal.org/facilities","description":"Notable Buddhist hall with significant architecture in Azabudai."},
+  {"name":"The Okura Tokyo","name_jp":"オークラ東京","category":"MINATO","type":"hotel","address":"2 Chome-10-4 Toranomon, Minato City, Tokyo 105-0001","phone":"+81 3-3582-0111","url":"http://www.theokuratokyo.jp","description":"Iconic luxury hotel in Toranomon, known for its classic Japanese modernist architecture and design."},
+  {"name":"Matsukawa","name_jp":"松川","category":"MINATO","type":"restaurant","address":"〒107-0052 Tokyo, Minato City, Akasaka, 1 Chome-11-6 Akasaka Terrace House 1F","phone":"+81 362-777-371","url":"http://www.t-matsukawa.com","description":"Acclaimed kaiseki restaurant in Akasaka."},
+  {"name":"PST Roppongi","name_jp":"Pizza Studio Tamaki","category":"MINATO","type":"restaurant","address":"〒106-0032 Tokyo, Minato City, Roppongi, 7 Chome-6-2 六本木エムケイアートレジデンス 1F","phone":"+81 364-347-932","url":"http://www.pst-roppongi.com","description":"Pizza restaurant by chef Tamaki in Roppongi."},
+  {"name":"PST Higashi Azabu","name_jp":"Pizza Studio Tamaki","category":"MINATO","type":"restaurant","address":"1 Chome-24-6 Higashiazabu, Minato City, Tokyo 106-0044","phone":"+81 3-6277-8064","url":"http://www.pst-tk2-ad.com","description":"Pizza restaurant by chef Tamaki in Higashi Azabu."},
+  {"name":"sacai Aoyama","name_jp":null,"category":"MINATO","type":"shop","address":"〒107-0062 Tokyo, Minato City, Minamiaoyama, 5 Chome-4-44 南青山シティハウス","phone":"+81 3-6418-5977","url":"http://www.sacai.jp","description":"Flagship store of the Japanese fashion brand sacai in Aoyama."},
+  {"name":"Akio Nagasawa Gallery Aoyama","name_jp":null,"category":"MINATO","type":"gallery","address":"〒107-0062 Tokyo, Minato City, Minamiaoyama, 5 Chome-12-3 Noirビル2F","phone":"+81 3-6427-9611","url":"http://www.akionagasawa.com","description":"Photography gallery in Aoyama."},
+  {"name":"Kogado","name_jp":"香雅堂","category":"MINATO","type":"shop","address":"〒106-0045 Tokyo, Minato City, Azabujuban, 3 Chome-3-5 麻布香雅堂","phone":"+81 3-3452-0351","url":"http://www.kogado.co.jp","description":"Incense shop in Azabujuban."},
+  {"name":"Tempuraya Miyakawa","name_jp":"みやかわ","category":"MINATO","type":"restaurant","address":"6 Chome-1-6 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3400-3722","url":"N/A","description":"Traditional tempura restaurant in Aoyama."},
+  {"name":"Taro Okamoto Memorial Museum","name_jp":"岡本太郎記念館","category":"MINATO","type":"museum","address":"6 Chome-1-19 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3406-0801","url":"http://www.taro-okamoto.or.jp","description":"Museum in the former atelier of avant-garde artist Taro Okamoto."},
+  {"name":"Baiso-in","name_jp":"浄土宗 梅窓院（長青山 寳樹寺）","category":"MINATO","type":"temple","address":"2 Chome-26-38 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3404-8447","url":"N/A","description":"Jodo-sect Buddhist temple in Aoyama with notable contemporary architecture."},
+  {"name":"Hakusan Shop","name_jp":"白山陶器東京ショールーム","category":"MINATO","type":"shop","address":"5 Chome-3-10 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-5774-8850","url":"http://www.hakusan-shop-online.com","description":"Tokyo showroom of Hakusan ceramics."},
+  {"name":"HULS Gallery Tokyo","name_jp":null,"category":"MINATO","type":"gallery","address":"〒107-0052 Tokyo, Minato City, Akasaka, 6 Chome-4-10 赤坂ZENビル2階","phone":"+81 90-1606-2641","url":"http://www.hulsgallerytokyo.com","description":"Gallery showcasing Japanese crafts and design in Akasaka."},
+  {"name":"Nihonbashi Kiya","name_jp":"日本橋木屋 東京ミッドタウン店","category":"MINATO","type":"shop","address":"〒107-0052 Tokyo, Minato City, Akasaka, 9 Chome-7-4 東京ミッドタウン Galleria3F","phone":"+81 3-5414-2088","url":"http://www.nihombashi-tokyo.com","description":"Renowned Japanese knife and kitchen tools shop at Tokyo Midtown."},
+  {"name":"21_21 DESIGN SIGHT","name_jp":null,"category":"MINATO","type":"museum","address":"〒107-0052 Tokyo, Minato City, Akasaka, 9 Chome-7-6 東京ミッドタウン ミッドタウン・ガーデン","phone":"+81 33-475-2121","url":"http://www.2121designsight.jp","description":"Design museum at Tokyo Midtown, conceived by Issey Miyake and directed by Taku Satoh and Naoto Fukasawa."},
+  {"name":"Rama","name_jp":null,"category":"MINATO","type":"restaurant","address":"〒108-0072 Tokyo, Minato City, Shirokane, 6 Chome-21-12 大石ビル 1F","phone":"+81 50-3134-3399","url":"N/A","description":"Italian-Japanese fusion restaurant in Shirokane."},
+  {"name":"Nihonryori Kanda","name_jp":"日本料理 かんだ","category":"MINATO","type":"restaurant","address":"〒105-0002 Tokyo, Minato City, Atago, 1 Chome-1-1 虎ノ門ヒルズレジデンシャルタワー 1階","phone":"+81 3-6459-0176","url":"http://www.nihonryori-kanda.com","description":"Celebrated kaiseki restaurant by chef Hiroyuki Kanda at Toranomon Hills."},
+  {"name":"Tachigui Sushi Akira","name_jp":"立喰い寿司あきら","category":"MINATO","type":"restaurant","address":"Japan, 〒105-0004 Tokyo, Minato City, Shinbashi, 3 Chome-8-5 Le Gratteciel 号 B1","phone":"+81 70-3293-7491","url":"N/A","description":"Standing sushi bar in Shimbashi."},
+  {"name":"Isana Sushi Bar","name_jp":"細小魚","category":"MINATO","type":"restaurant","address":"1 Chome-11-6 Nishiazabu, Minato City, Tokyo 106-0031","phone":"+81 3-6434-9194","url":"http://www.isanasushibar.com","description":"Sushi bar in Nishi Azabu."},
+  {"name":"Nezu Museum","name_jp":"根津美術館","category":"MINATO","type":"museum","address":"6 Chome-5-1 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3400-2536","url":"http://www.nezu-muse.or.jp","description":"Museum housing pre-modern Japanese and East Asian art with a renowned Japanese garden."},
+  {"name":"MORI Building DIGITAL ART MUSEUM: teamLab Borderless","name_jp":"エプソン チームラボボーダレス","category":"MINATO","type":"museum","address":"Japan, 〒106-0041 Tokyo, Minato City, Azabudai, 1 Chome-2-4 ヒルズ ガーデンプラザ B B1","phone":"+81 3-6230-9666","url":"http://www.teamlab.art","description":"Immersive digital art museum by teamLab at Azabudai Hills."},
+  {"name":"Tensuke","name_jp":"天すけ","category":"NAKANO","type":"restaurant","address":"3 Chome-22-7 Koenjikita, Suginami City, Tokyo 166-0002","phone":"+81 3-3223-8505","url":"N/A","description":"Tempura restaurant in Koenji."},
+  {"name":"Gallery Studio 35 Minutes","name_jp":"ギャラリー スタジオ35分","category":"NAKANO","type":"gallery","address":"5 Chome-47-8 Kamitakada, Nakano City, Tokyo 164-0002","phone":null,"url":"http://www.35fn.com","description":"Independent gallery in Nakano."},
+  {"name":"Tousenkaku","name_jp":"桃仙閣 東京","category":"ROPPONGI","type":"restaurant","address":"〒106-0032 Tokyo, Minato City, Roppongi, 4 Chome-8-7 六本木鶴田ビル B1F","phone":"+81 50-3138-4343","url":"http://www.tousenkaku-tokyo.com","description":"Chinese restaurant in Roppongi."},
+  {"name":"Sushi Saito","name_jp":"鮨 さいとう","category":"ROPPONGI","type":"restaurant","address":"〒106-0032 Tokyo, Minato City, Roppongi, 1 Chome-4-5 ARK Hills South Tower 1F","phone":"+81 50-5263-6863","url":"N/A","description":"One of Japan's most acclaimed sushi restaurants, renowned for exceptional quality."},
+  {"name":"Taka Ishii Gallery Tokyo","name_jp":"タカ・イシイギャラリー","category":"ROPPONGI","type":"gallery","address":"〒106-0032 Tokyo, Minato City, Roppongi, 6 Chome-5-24 complex665 3F","phone":"+81 364-347-010","url":"http://www.takaishiigallery.com","description":"Leading contemporary art gallery in Roppongi."},
+  {"name":"Taka Ishii Gallery Photography/Film","name_jp":"タカ・イシイギャラリーフォトグラフィー/フィルム","category":"ROPPONGI","type":"gallery","address":"〒106-0032 Tokyo, Minato City, Roppongi, 5 Chome-17-1 AXISビル 2F","phone":"+81 3-5575-5004","url":"http://www.takaishiigallery.com","description":"Photography and film-focused gallery by Taka Ishii in Roppongi."},
+  {"name":"United Arrows Roppongi Hills","name_jp":"ユナイテッドアローズ 六本木ヒルズ店","category":"ROPPONGI","type":"shop","address":"〒106-0032 Tokyo, Minato City, Roppongi, 6 Chome-10-3 ヒルズ ウェストウォーク 2F-3F","phone":"+81 3-5786-0555","url":"http://www.store.united-arrows.co.jp","description":"Multi-brand fashion boutique at Roppongi Hills."},
+  {"name":"Zen Foto Gallery","name_jp":null,"category":"ROPPONGI","type":"gallery","address":"〒106-0032 Tokyo, Minato City, Roppongi, 6 Chome-6-9 ピラミデビル2階","phone":"+81 3-6804-1708","url":"http://www.zen-foto.jp","description":"Photography gallery specialising in Asian photography."},
+  {"name":"Tomio Koyama Gallery","name_jp":"小山登美夫ギャラリー六本木","category":"ROPPONGI","type":"gallery","address":"〒106-0032 Tokyo, Minato City, Roppongi, 6 Chome-5-24 complex665 2F","phone":"+81 3-6434-7225","url":"http://www.tomiokoyamagallery.com","description":"Contemporary art gallery in Roppongi."},
+  {"name":"TARO NASU","name_jp":null,"category":"ROPPONGI","type":"gallery","address":"〒106-0032 Tokyo, Minato City, Roppongi, 6 Chome-6-9 ピラミデビル4F","phone":"+81 3-5786-6900","url":"http://www.taronasugallery.com","description":"Contemporary art gallery in Roppongi's Piramide Building."},
+  {"name":"Mori Art Museum","name_jp":"森美術館","category":"ROPPONGI","type":"museum","address":"〒106-6150 Tokyo, Minato City, Roppongi, 6 Chome-10-1 Roppongi Hills Mori Tower 53階","phone":"+81 50-5541-8600","url":"http://www.mori.art.museum","description":"Contemporary art museum on the 53rd floor of Roppongi Hills Mori Tower with panoramic city views."},
+  {"name":"Shiro-Hige's Cream Puff Factory","name_jp":"白髭のシュークリーム工房","category":"SETAGAYA","type":"cafe","address":"5 Chome-3-1 Daita, Setagaya City, Tokyo 155-0033","phone":"+81 3-5787-6221","url":"N/A","description":"Famous for Totoro-shaped cream puffs."},
+  {"name":"Tofu Cuisine Sorano Shibuya","name_jp":"とうふ空野 渋谷","category":"SHIBUYA","type":"restaurant","address":"〒150-0031 Tokyo, Shibuya City, Sakuragaokacho, 4-17 チェリーガーデン 1階","phone":"+81 3-5728-5191","url":"N/A","description":"Tofu-focused Japanese cuisine restaurant in Shibuya."},
+  {"name":"POST","name_jp":null,"category":"SHIBUYA","type":"bookshop","address":"2 Chome-10-3 Ebisuminami, Shibuya City, Tokyo 150-0022","phone":"+81 3-3713-8670","url":"http://www.post-books.info","description":"Independent bookshop in Ebisu."},
+  {"name":"shelf","name_jp":"洋書","category":"SHIBUYA","type":"bookshop","address":"3 Chome-7-4 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3405-7889","url":"http://www.instagram.com/shelf_bookshop","description":"Foreign language bookshop in Jingumae."},
+  {"name":"Santouka Shibuya","name_jp":"らーめん山頭火 渋谷店","category":"SHIBUYA","type":"restaurant","address":"3 Chome-13-7 Shibuya, Shibuya City, Tokyo 150-0002","phone":"+81 3-3797-3500","url":"http://www.santouka.co.jp","description":"Ramen restaurant in Shibuya from the well-known Santouka chain."},
+  {"name":"BIG LOVE Records","name_jp":null,"category":"SHIBUYA","type":"shop","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 2 Chome-31-3","phone":"+81 3-5775-1315","url":"http://www.bigloverecords.jp","description":"Independent record shop in Harajuku."},
+  {"name":"Analog Cafe Lounge Tokyo","name_jp":"アナログ カフェ ラウンジ トーキョー","category":"SHIBUYA","type":"cafe","address":"〒150-0022 Tokyo, Shibuya City, Ebisuminami, 1 Chome-8-3 東亜恵比寿ビル 4F","phone":"+81 3-3760-0955","url":"http://www.instagram.com/analog_ebisu","description":"Cafe and lounge with a relaxed atmosphere in Ebisu."},
+  {"name":"Meiji Shrine","name_jp":"明治神宮","category":"SHIBUYA","type":"shrine","address":"1-1 Yoyogikamizonocho, Shibuya City, Tokyo 151-8557","phone":"+81 3-3379-5511","url":"http://www.meijijingu.or.jp","description":"Shinto shrine dedicated to Emperor Meiji and Empress Shoken, located in a serene forested area in central Tokyo."},
+  {"name":"Totodo","name_jp":"東塔堂","category":"SHIBUYA","type":"bookshop","address":"〒150-0032 Tokyo, Shibuya City, Uguisudanicho, 5-7 第2ヴィラ青山1F","phone":"+81 3-3770-7387","url":"http://www.totodo.jp","description":"Bookshop and gallery in Shibuya."},
+  {"name":"White Mountaineering","name_jp":null,"category":"SHIBUYA","type":"shop","address":"2-7 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-6416-5381","url":"http://www.whitemountaineering.com","description":"Japanese outdoor fashion brand flagship store in Daikanyama."},
+  {"name":"Bar Trench","name_jp":null,"category":"SHIBUYA","type":"bar","address":"〒150-0021 Tokyo, Shibuya City, Ebisunishi, 1 Chome-5-8 Dis Ebisu Bldg. 102","phone":"+81 3-3780-5291","url":"http://www.small-axe.net","description":"Craft cocktail bar in Ebisu."},
+  {"name":"Yumiko Iihoshi Porcelain","name_jp":"ユミコイイホシポーセリン","category":"SHIBUYA","type":"shop","address":"〒150-0034 Tokyo, Shibuya City, Daikanyamacho, 6-6 SPTビル 1-A","phone":"+81 3-6433-5466","url":"http://www.y-iihoshi-p.com","description":"Shop selling ceramics by designer Yumiko Iihoshi in Daikanyama."},
+  {"name":"Eliminator","name_jp":null,"category":"SHIBUYA","type":"shop","address":"〒150-0033 Tokyo, Shibuya City, Sarugakucho, 26-13 グレイス代官山","phone":"+81 3-3464-8144","url":"http://www.eliminator.co.jp","description":"Fashion shop in Daikanyama."},
+  {"name":"Sushi Tokyo Ten Shibuya","name_jp":null,"category":"SHIBUYA","type":"restaurant","address":"3 Chome-21-3 Shibuya, Shibuya City, Tokyo 150-0002","phone":"+81 3-6427-5076","url":"N/A","description":"Sushi restaurant in Shibuya."},
+  {"name":"Nakagawa Masashichi Shibuya","name_jp":"中川政七商店 渋谷店","category":"SHIBUYA","type":"shop","address":"〒150-0002 Tokyo, Shibuya City, Shibuya, 2 Chome-24-12 スクランブルスクエア 11階","phone":"+81 3-6712-6148","url":"http://www.nakagawa-masashichi.jp","description":"Japanese craft shop at Shibuya Scramble Square."},
+  {"name":"Bank Gallery","name_jp":null,"category":"SHIBUYA","type":"gallery","address":"6 Chome-14-5 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-6427-5834","url":"N/A","description":"Gallery in a building designed by Tadao Ando in Harajuku."},
+  {"name":"Hollywood Ranch Market","name_jp":"ハリウッドランチマーケット","category":"SHIBUYA","type":"vintage","address":"28-17 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-3463-5668","url":"http://www.hrm-eshop.com","description":"Long-running vintage-inspired clothing shop in Daikanyama."},
+  {"name":"Kotaro","name_jp":"高太郎","category":"SHIBUYA","type":"restaurant","address":"28-2 Sakuragaokacho, Shibuya City, Tokyo 150-0031","phone":"+81 3-5428-5705","url":"N/A","description":"Popular izakaya in Shibuya."},
+  {"name":"Fuunji","name_jp":"風雲児","category":"SHIBUYA","type":"restaurant","address":"〒151-0053 Tokyo, Shibuya City, Yoyogi, 2 Chome-14-3 北斗第一ビル 1F","phone":null,"url":"N/A","description":"Renowned tsukemen (dipping ramen) restaurant in Yoyogi."},
+  {"name":"SOWADO","name_jp":"創和堂","category":"SHIBUYA","type":"restaurant","address":"1 Chome-12-15 Hiroo, Shibuya City, Tokyo 150-0012","phone":"+81 50-1807-6893","url":"N/A","description":"Japanese grill restaurant in Hiroo."},
+  {"name":"GR8","name_jp":null,"category":"SHIBUYA","type":"shop","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 1 Chome-11-6 2.5F","phone":"+81 3-3408-6908","url":"http://www.gr8.jp","description":"Select fashion shop in Harajuku."},
+  {"name":"The North Face LAB","name_jp":null,"category":"SHIBUYA","type":"shop","address":"〒150-8377 Tokyo, Shibuya City, Udagawacho, 15-1 渋谷PARCO 2F","phone":"+81 3-6455-0586","url":"http://www.instagram.com/thenorthface.jp","description":"The North Face concept store at Shibuya PARCO."},
+  {"name":"nanamica Daikanyama","name_jp":null,"category":"SHIBUYA","type":"shop","address":"26-13 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-5728-6550","url":"http://www.nanamica.com","description":"Nanamica flagship store in Daikanyama."},
+  {"name":"nanamica MOUNTAIN","name_jp":null,"category":"SHIBUYA","type":"shop","address":"19-5 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-6416-3012","url":"http://www.nanamica.com","description":"Nanamica mountain-focused store in Daikanyama."},
+  {"name":"and wander MIYASHITA PARK","name_jp":null,"category":"SHIBUYA","type":"shop","address":"渋谷区 神宮前六丁目20番10号 MIYASHITA PARK South 2F, Shibuya City, Tokyo 150-0001","phone":"+81 3-6433-5485","url":"http://www.andwander.com","description":"and wander outdoor clothing store at MIYASHITA PARK."},
+  {"name":"Shinjuku Rurikoin Byakurengedo","name_jp":"新宿瑠璃光院白蓮華堂","category":"SHIBUYA","type":"temple","address":"2 Chome-4-3 Yoyogi, Shibuya City, Tokyo 151-0053","phone":"+81 1-2051-7177","url":"N/A","description":"Contemporary Buddhist temple with striking architectural design in Yoyogi."},
+  {"name":"Lurf MUSEUM","name_jp":null,"category":"SHIBUYA","type":"museum","address":"〒150-0033 Tokyo, Shibuya City, Sarugakucho, 28-13 Roob1 2F","phone":null,"url":"http://www.instagram.com/lurf_museum","description":"Art museum, gallery and cafe in Daikanyama."},
+  {"name":"Meiji Jingu Museum","name_jp":"明治神宮ミュージアム","category":"SHIBUYA","type":"museum","address":"1-1 Yoyogikamizonocho, Shibuya City, Tokyo 151-0052","phone":"+81 3-3379-5875","url":"http://www.meijijingu.or.jp","description":"Museum within the Meiji Shrine grounds, designed by Kengo Kuma, displaying treasures related to Emperor Meiji and Empress Shoken."},
+  {"name":"Shirubee Shibuya","name_jp":"汁べゑ 渋谷店","category":"SHIBUYA","type":"restaurant","address":"〒150-0041 Tokyo, Shibuya City, Jinnan, 1 Chome-11-5 ダイネス壱番館別館 2F","phone":"+81 3-3463-1010","url":"N/A","description":"Izakaya in Shibuya."},
+  {"name":"35 steps bistro","name_jp":"ビストロ 三十五段屋","category":"SHIBUYA","type":"restaurant","address":"〒150-0044 Tokyo, Shibuya City, Maruyamacho, 1-1 渋谷シティーホテル B1","phone":"+81 3-3770-9835","url":"N/A","description":"Izakaya/gastrobar in Shibuya."},
+  {"name":"Tatemichiya","name_jp":"立道屋","category":"SHIBUYA","type":"restaurant","address":"30-8 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-5459-3431","url":"N/A","description":"Izakaya in Daikanyama."},
+  {"name":"G☆P COFFEE ROASTER","name_jp":null,"category":"SHIBUYA","type":"cafe","address":"2 Chome-28-4 Honmachi, Shibuya City, Tokyo 151-0071","phone":null,"url":"http://www.gpcoffeeroaster.com","description":"Specialty coffee roaster in Shibuya."},
+  {"name":"Hi Bridge Books","name_jp":null,"category":"SHIBUYA","type":"bookshop","address":"5 Chome-11-10 Yoyogi, Shibuya City, Tokyo 151-0053","phone":null,"url":"http://www.instagram.com/hi_bridge_books","description":"Independent bookshop in Yoyogi."},
+  {"name":"Uogashi Nihon-Ichi Shibuya Dogenzaka","name_jp":"寿司 魚がし日本一 渋谷道玄坂店","category":"SHIBUYA","type":"restaurant","address":"2 Chome-9-1 Dogenzaka, Shibuya City, Tokyo 150-0043","phone":"+81 3-5428-4851","url":"http://www.uogashi-nihonichi.imachika.com","description":"Standing sushi bar on Dogenzaka in Shibuya.","source":"Max Schiller"},
+  {"name":"Namikibashi Nakamura Honten","name_jp":"本店 並木橋 なかむら","category":"SHIBUYA","type":"restaurant","address":"〒150-0002 Tokyo, Shibuya City, Shibuya, 3 Chome-13-5 BPRレジデンス渋谷 2階B","phone":"+81 3-6427-9580","url":"http://www.instagram.com/namikibashi_nakamura","description":"Izakaya restaurant in Shibuya."},
+  {"name":"Okura","name_jp":"オクラ OKURA","category":"SHIBUYA","type":"shop","address":"20-11 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-3461-8511","url":"http://www.hrm-eshop.com","description":"Fashion shop in Daikanyama."},
+  {"name":"Maidens","name_jp":null,"category":"SHIBUYA","type":"shop","address":"2 Chome-19-12 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-5410-6686","url":"http://www.shop.maiden.jp","description":"Fashion shop in Jingumae."},
+  {"name":"N id Tokyo","name_jp":null,"category":"SHIBUYA","type":"shop","address":"1 Chome-3-2 Jinnan, Shibuya City, Tokyo 150-0041","phone":"+81 3-5784-5448","url":"http://www.store.nid-tokyo.com","description":"Design and lifestyle shop in Shibuya."},
+  {"name":"B 2nd Jinnan","name_jp":"B2nd 神南","category":"SHIBUYA","type":"vintage","address":"〒150-0041 Tokyo, Shibuya City, Jinnan, 1 Chome-17-4 Jinnan Bldg. 1F","phone":null,"url":"http://www.us-onlinestore.com/B2nd","description":"Popular used clothing store in Jinnan, Shibuya. Sells a curated selection of second-hand fashion and accessories."},
+  {"name":"AMBUSH WORKSHOP","name_jp":null,"category":"SHIBUYA","type":"shop","address":"1 Chome-22-8 Shibuya, Shibuya City, Tokyo 150-0002","phone":"+81 3-6451-1410","url":"http://www.ambushdesign.com","description":"Jewelry and fashion shop by designer YOON in Shibuya."},
+  {"name":"TOGA XTC Harajuku","name_jp":null,"category":"SHIBUYA","type":"shop","address":"6 Chome-31-10 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-6419-8136","url":"http://www.toga.jp","description":"TOGA fashion brand store in Harajuku."},
+  {"name":"Music Bar Lion","name_jp":"不眠遊戯ライオン","category":"SHIBUYA","type":"bar","address":"6 Chome-19-17 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-6712-5611","url":"http://www.instagram.com/music_bar_lion","description":"Music bar/cafe in Harajuku."},
+  {"name":"The Mass","name_jp":null,"category":"SHIBUYA","type":"gallery","address":"5 Chome-11-1 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3406-0188","url":"http://www.themass.jp","description":"Contemporary art gallery in Jingumae."},
+  {"name":"Jordan World of Flight Tokyo","name_jp":null,"category":"SHIBUYA","type":"shop","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 6 Chome-25-14 Jre Jingumae Media Square Building 1F","phone":"+81 3-3797-3520","url":"http://www.nike.com","description":"Nike Jordan Brand flagship store in Harajuku."},
+  {"name":"Kokugakuin University Museum","name_jp":"國學院大學博物館","category":"SHIBUYA","type":"museum","address":"4 Chome-10-28 Higashi, Shibuya City, Tokyo 150-8440","phone":"+81 3-5466-0359","url":"http://www.museum.kokugakuin.ac.jp","description":"University museum with extensive collections on Shinto, archaeology and Japanese history."},
+  {"name":"The Bellwood","name_jp":null,"category":"SHIBUYA","type":"bar","address":"41-31 Udagawacho, Shibuya City, Tokyo 150-0042","phone":"+81 3-6452-5077","url":"http://www.instagram.com/the_bellwood","description":"Bar in Shibuya."},
+  {"name":"HOTEL DRUGS","name_jp":null,"category":"SHIBUYA","type":"cafe","address":"2 Chome-12-3 Jingumae, Shibuya City, Tokyo 150-0001","phone":null,"url":"http://www.instagram.com/hoteldrugs","description":"Cafe in Jingumae, Harajuku."},
+  {"name":"Watarium Art Museum","name_jp":"ワタリウム美術館","category":"SHIBUYA","type":"museum","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 3 Chome-7-6 オン・サンデーズ B1F","phone":"+81 3-3402-3001","url":"http://www.watarium.co.jp","description":"Contemporary art museum on Killer-dori in Harajuku, with the attached On Sundays bookshop."},
+  {"name":"AM","name_jp":"原宿","category":"SHIBUYA","type":"gallery","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 6 Chome-33-14 神宮ハイツ301/302","phone":"+81 3-5778-3913","url":"http://www.am-project.jp","description":"Art gallery in Harajuku."},
+  {"name":"Seafood Bar Ermitage Yoyogi","name_jp":null,"category":"SHIBUYA","type":"restaurant","address":"〒151-0053 Tokyo, Shibuya City, Yoyogi, 1 Chome-45-4 代々木山陽ビル 1F","phone":"+81 3-6264-3665","url":"N/A","description":"Seafood bar restaurant in Yoyogi."},
+  {"name":"Kyu Asakura House","name_jp":"旧朝倉家住宅","category":"SHIBUYA","type":"architecture","address":"29-20 Sarugakucho, Shibuya City, Tokyo 150-0033","phone":"+81 3-3476-1021","url":"N/A","description":"Historic house designated as a national important cultural property in Daikanyama, built in 1919."},
+  {"name":"NADiff a/p/a/r/t","name_jp":null,"category":"SHIBUYA","type":"bookshop","address":"〒150-0013 Tokyo, Shibuya City, Ebisu, 1 Chome-18-4 NADiff A/P/A/R/T 1F","phone":"+81 3-3446-4977","url":"http://www.nadiff.com/","description":"Arguably the city's best-stocked art bookshop. Boasts shelves crammed with Japanese and foreign books, as well as a selection of prints and a plentiful variety of zines. Its own NADiff Gallery holds regular exhibitions."},
+  {"name":"Micasadeco & Cafe Jingumae","name_jp":"ミカサデコ&カフェ神宮前","category":"SHIBUYA","type":"cafe","address":"〒150-0001 Tokyo, Shibuya City, Jingumae, 6 Chome-13-2 1F","phone":"+81 3-6803-8630","url":"http://www.micasadecoandcafe.com","description":"Cafe famous for fluffy 3-layer pancakes made with ricotta cheese in Harajuku."},
+  {"name":"Tempura Motoyoshi","name_jp":"天ぷら元吉恵比寿","category":"SHIBUYA","type":"restaurant","address":"〒150-0021 Tokyo, Shibuya City, Ebisunishi, 2 Chome-8-11, Granbell Ebisu IV, 3階","phone":"+81 3-6455-0200","url":"http://www.motoyoshi-1120.com","description":"Renowned tempura restaurant in Ebisu. Chef Motoyoshi manipulates batter thickness and flame heat to showcase a cornucopia of flavours."},
+  {"name":"Soba Osame","name_jp":"蕎麦おさめ","category":"SHINJUKU","type":"restaurant","address":"3 Chome-21-5 Shimoochiai, Shinjuku City, Tokyo 161-0033","phone":"+81 50-5487-7701","url":"http://www.soba-osame.gorp.jp","description":"One of the best soba-yas in Tokyo. Master Kenji Osame sources buckwheat from various regions across Japan. Considered one of the best soba masters in Tokyo."},
+  {"name":"SAIME","name_jp":null,"category":"SHINJUKU","type":"restaurant","address":"Japan, 〒162-0837 Tokyo, Shinjuku City, Nandomachi, 33 ガーデンヒルズ市ヶ谷 101","phone":null,"url":"http://www.instagram.com/saimez_0626","description":"Restaurant themed around 'Cooking in Earthenware'. Omakase course in an intimate setting in Ichigaya."},
+  {"name":"Sokyusha gallery","name_jp":null,"category":"SHINJUKU","type":"gallery","address":"1 Chome-3-5 Shinjuku, Shinjuku City, Tokyo 160-0022","phone":null,"url":"http://www.sokyusha.com","description":"Publishing house and shop specialising in photobooks. Founded in 1986 by Michitaka Ota. Features works by Daido Moriyama, Michio Yamauchi, Masahisa Fukase and others. Gallery forms part of the shop."},
+  {"name":"Isetan Shinjuku","name_jp":"伊勢丹 新宿店","category":"SHINJUKU","type":"shop","address":"3 Chome-14-1 Shinjuku, Shinjuku City, Tokyo 160-0022","phone":"+81 3-3352-1111","url":"http://www.mistore.jp.e.az.hp.transer.com","description":"Flagship department store in Shinjuku. Famous for its Depachiku food hall in the basement."},
+  {"name":"AKOMEYA TOKYO in la kagu","name_jp":null,"category":"SHINJUKU","type":"shop","address":"67番地 Yaraicho, Shinjuku City, Tokyo 162-0805","phone":"+81 3-5946-8241","url":"http://www.akomeya.jp","description":"Rice-focused lifestyle shop and cafe in the la kagu complex in Kagurazaka."},
+  {"name":"AKOMEYA TOKYO NEWoMan SHINJUKU","name_jp":null,"category":"SHINJUKU","type":"shop","address":"〒160-0022 Tokyo, 新宿区Shinjuku, 4 Chome-1-6 NEWoMan新宿 1階","phone":"+81 3-5341-4608","url":"http://www.akomeya.jp","description":"AKOMEYA TOKYO rice-focused lifestyle store at NEWoMan Shinjuku."},
+  {"name":"Kagurazaka Ishikawa","name_jp":"石かわ","category":"SHINJUKU","type":"restaurant","address":"〒162-0825 Tokyo, Shinjuku City, Kagurazaka, 5 Chome-37 高村ビル 1f","phone":"+81 3-5225-0173","url":"http://www.kagurazaka-ishikawa.co.jp","description":"3-Michelin-star kaiseki restaurant in Kagurazaka. Chef Hideki Ishikawa's cooking focuses on kakushiaji (subtle seasoning that brings out the flavour)."},
+  {"name":"Kagurazaka Ozashiki Tempura Tenko","name_jp":"天婦羅 天孝（てんこう）","category":"SHINJUKU","type":"restaurant","address":"Japan, 〒162-0825 Tokyo, Shinjuku City, Kagurazaka, 3 Chome-1","phone":"+81 3-3269-1414","url":"http://www.kagurazaka-tenko.jp","description":"Renowned Edomae tempura restaurant in Kagurazaka. Chef Hitoshi Arai was invited to be a guest chef at the 2015 Expo in Milan and for a banquet held for Prime Minister Abe."},
+  {"name":"YAYOI KUSAMA Museum","name_jp":"草間彌生美術館","category":"SHINJUKU","type":"museum","address":"107 Bentencho, Shinjuku City, Tokyo 162-0851","phone":"+81 3-5273-1778","url":"http://www.yayoikusamamuseum.jp","description":"Museum founded and run by the Yayoi Kusama Foundation, dedicated to spreading and promoting Kusama's art."},
+  {"name":"Flotsam Books","name_jp":"フロットサムブックス","category":"SUGINAMI","type":"bookshop","address":"1 Chome-10-7 Izumi, Suginami City, Tokyo 168-0063","phone":null,"url":"http://www.flotsambooks.com","description":"Small Japanese bookstore selling a variety of attractive books and photo books. Many of the photo books on display are very rare and historical."},
+  {"name":"Koenji neighbourhood","name_jp":null,"category":"SUGINAMI","type":"vintage","address":"Koenji, Suginami City, Tokyo","phone":null,"url":"N/A","description":"Best neighbourhood for vintage shopping in Tokyo. Has hundreds of great vintage stores. Recommended by Max Schiller.","source":"Max Schiller"},
+  {"name":"Edosoba Hosokawa","name_jp":"江戸蕎麦 ほそ川","category":"SUMIDA","type":"restaurant","address":"1 Chome-6-5 Kamezawa, Sumida City, Tokyo 130-0014","phone":"+81 3-3626-1125","url":"http://www.edosoba-hosokawa.jp","description":"Chef Hosokawa tours producing regions in search of the highest-quality buckwheat for his soba noodles. Seasonal toppings include bamboo shoots, wakame, and large oysters."},
+  {"name":"Edo-Tokyo Museum","name_jp":null,"category":"SUMIDA","type":"museum","address":"1 Chome-4-1 Yokoami, Sumida City, Tokyo 130-0015","phone":"+81 3-3626-9974","url":"http://www.edo-tokyo-museum.or.jp","description":"Museum of the history of Tokyo during the Edo period. Established in 1993. The building was designed by Kiyonori Kikutake."},
+  {"name":"Reminders Project Stronghold","name_jp":null,"category":"SUMIDA","type":"gallery","address":"2 Chome-38-5 Higashimukojima, Sumida City, Tokyo 131-0032","phone":null,"url":"http://www.reminders-project.org","description":"90-square-metre gallery with workshops, events, photo book exhibition room, photography project support, publishing, accommodation and other facilities."},
+  {"name":"Kappabashi-dori","name_jp":"かっぱ橋道具街","category":"TAITO","type":"shopping street","address":"Kappabashi, 3 Chome-18-2 Matsugaya, Taito City, Tokyo 110-0036","phone":null,"url":"N/A","description":"Kappabashi Street (Kappabashi Dogugai) is a shopping street between Ueno and Asakusa, lined with several dozens of stores selling everything needed by restaurant operators."},
+  {"name":"Senso-ji","name_jp":"浅草寺","category":"TAITO","type":"temple","address":"2 Chome-3-1 Asakusa, Taito City, Tokyo 111-0032","phone":"+81 3-3842-0181","url":"http://www.senso-ji.jp","description":"Buddhist temple in Asakusa, also known as Asakusa Kannon Temple. One of Tokyo's most colorful and popular temples. Tokyo's oldest temple, completed in 645."},
+  {"name":"Nakamura Tea Life Store","name_jp":null,"category":"TAITO","type":"shop","address":"4 Chome-20-4 Kuramae, Taito City, Tokyo 111-0051","phone":"+81 3-5843-8744","url":"http://www.tea-nakamura.com","description":"Organic tea store. The Nakamura family has been making tea in various tea plantations in Shizuoka since 1919 and committed to going completely organic 20 years ago."},
+  {"name":"Suzukien Asakusa","name_jp":"壽々喜園","category":"TAITO","type":"cafe","address":"3 Chome-4-3 Asakusa, Taito City, Tokyo 111-0032","phone":"+81 3-3873-0311","url":"N/A","description":"Famous for the World's Strongest Matcha Ice Cream. Offers 7 levels of matcha intensity."},
+  {"name":"Tokyo Cruise","name_jp":"浅草・お台場直通ライン","category":"TAITO","type":"activity","address":"〒111-0033 Tokyo, Taito City, 花川戸1丁目1-1","phone":"+81 1-2097-7311","url":"http://www.suijobus.co.jp","description":"Sumida River water bus Himiko Cruise from Asakusa to Odaiba. The Himiko is a futuristic spacecraft-like boat designed by Leiji Matsumoto."},
+  {"name":"Studio Ghibli Concept Store","name_jp":null,"category":"TOSHIMA","type":"shop","address":"〒170-6090 Tokyo, Toshima City, Higashiikebukuro, 3 Chome-1 サンシャインシティ 専門店街アルパ B1","phone":"+81 3-3988-8188","url":"http://www.benelic.com/donguri","description":"Donguri is Studio Ghibli's official merchandise store. The animation studio partnered with Benelic Group to create a store chain dedicated to the brand's by-products."},
+  {"name":"Comme des Garçons","name_jp":"コムデギャルソン","category":"AOYAMA","type":"shop","address":"5 Chome-2-1 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3406-3951","url":"http://www.comme-des-garcons.com","description":"Flagship store of Rei Kawakubo's iconic avant-garde fashion label in Aoyama. An architectural statement in itself — essential for fashion lovers visiting Tokyo.","source":"Swedish Friend"},
+  {"name":"Issey Miyake Aoyama","name_jp":"イッセイミヤケ","category":"AOYAMA","type":"shop","address":"3 Chome-18-11 Minamiaoyama, Minato City, Tokyo 107-0062","phone":"+81 3-3423-1408","url":"http://www.isseymiyake.com","description":"Flagship store of legendary Japanese designer Issey Miyake, known for pleated fabrics, bold silhouettes and a philosophy where clothing and body meet. A must-visit on the Aoyama shopping strip.","source":"Swedish Friend"},
+  {"name":"Arashiyama","name_jp":"嵐山","category":"KYOTO","type":"neighbourhood","address":"Arashiyama, Nishikyo Ward, Kyoto 616-0007","phone":null,"url":"http://www.japan-guide.com/e/e3912.html","description":"Kyoto's scenic mountain district, best explored on foot: the famous bamboo grove, Tenryu-ji temple, and a series of small mountain temples. A worthy addition if you have more than one day in Kyoto.","source":"Swedish Friend"},
+  {"name":"Heian Jingu","name_jp":"平安神宮","category":"KYOTO","type":"shrine","address":"Okazaki Nishitennocho, Sakyo Ward, Kyoto 606-8341","phone":"+81 75-761-0221","url":"http://www.heianjingu.or.jp","description":"One of Kyoto's grandest Shinto shrines, built in 1895 to commemorate the founding of the ancient capital. Famous for its enormous vermillion torii gateway and beautiful surrounding gardens. One of the guide's two essential Kyoto temple visits.","source":"Swedish Friend"},
+  {"name":"Kiyomizudera","name_jp":"清水寺","category":"KYOTO","type":"temple","address":"1 Chome-294 Kiyomizu, Higashiyama Ward, Kyoto 605-0862","phone":"+81 75-551-1234","url":"http://www.kiyomizudera.or.jp","description":"Kyoto's most iconic temple perched dramatically on a hillside with sweeping city views. The enormous wooden stage extending from the main hall was built without a single nail. Founded in 778 CE. Essential — the other of the guide's two must-visit Kyoto temples.","source":"Swedish Friend"},
+  {"name":"Toei Movie Land","name_jp":"東映太秦映画村","category":"KYOTO","type":"activity","address":"10 Uzumasa Higashihachioka-cho, Ukyo Ward, Kyoto 616-8586","phone":"+81 75-864-7716","url":"http://www.toei-eigamura.com","description":"Retro theme park and working TV studio in Kyoto. Minimal and gloriously 1980s in feel, but home to a legendarily good haunted house. A quirky half-day detour.","source":"Swedish Friend"},
+  {"name":"Shimokitazawa","name_jp":"下北沢","category":"KITAZAWA","type":"vintage","address":"Kitazawa, Setagaya City, Tokyo 155-0031","phone":null,"url":"N/A","description":"Tokyo's most beloved neighbourhood for vintage clothing — hundreds of second-hand fashion stores mixed with independent cafés, live music venues and a relaxed bohemian atmosphere. Famous among musicians, artists and anyone looking for something unique. Don't miss the loose-weight senbei crackers.","source":"Swedish Friend"},
+  {"name":"National Art Center Tokyo","name_jp":"国立新美術館","category":"MINATO","type":"museum","address":"7 Chome-22-2 Roppongi, Minato City, Tokyo 106-8558","phone":"+81 3-5777-8600","url":"http://www.nact.jp","description":"Japan's largest exhibition space with no permanent collection — all galleries rotate major international and domestic shows. Designed by Kisho Kurokawa, the undulating glass facade is an attraction in itself. Highly recommended.","source":"Swedish Friend"},
+  {"name":"Ghibli Museum","name_jp":"三鷹の森ジブリ美術館","category":"MITAKA","type":"museum","address":"1 Chome-1-83 Shimorenjaku, Mitaka City, Tokyo 181-0013","phone":"+81 570-055-777","url":"https://www.ghibli-museum.jp/en/","description":"Essential pilgrimage for fans of Studio Ghibli — the studio behind Spirited Away, My Neighbour Totoro and Princess Mononoke. Tickets must be purchased in advance for a specific date and time. Ask your hotel to help or book via Lawson convenience stores. Absolutely worth the effort.","source":"Swedish Friend"},
+  {"name":"Nakano Broadway","name_jp":"中野ブロードウェイ","category":"NAKANO","type":"shop","address":"5 Chome-52-15 Nakano, Nakano City, Tokyo 164-0001","phone":null,"url":"http://www.nbw.jp","description":"A wonderfully retro shopping mall with a 1980s glow — packed with stores selling everything from groceries and shoes to rare vinyl, figurines, vintage clothing and collectables. Pairs well with a visit to the Ghibli Museum (stations are nearby).","source":"Swedish Friend"},
+  {"name":"Cat Street","name_jp":"キャットストリート","category":"SHIBUYA","type":"shopping street","address":"Jingumae, Shibuya City, Tokyo 150-0001","phone":null,"url":"N/A","description":"A relaxed pedestrian street winding from Shibuya toward Harajuku, lined with a mix of vintage, high fashion, streetwear and lifestyle shops on all sides. Almost impossible to recommend specific stores — just walk and explore.","source":"Swedish Friend"},
+  {"name":"Harajuku Gyoza Lou","name_jp":"原宿餃子楼","category":"SHIBUYA","type":"restaurant","address":"6 Chome-2-4 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3406-4743","url":"N/A","description":"Tokyo's finest gyoza restaurant, tucked just behind Kiddyland on Omotesando-dori. A small building with a big bar serving essentially two dishes: steamed gyoza or fried gyoza, with tsukemono pickles on the side. Simple, perfect, essential.","source":"Swedish Friend"},
+  {"name":"Kiddyland Harajuku","name_jp":"キデイランド 原宿店","category":"SHIBUYA","type":"shop","address":"6 Chome-1-9 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3409-3431","url":"http://www.kiddyland.co.jp","description":"Wonderful multi-floor toy and character goods store in the heart of Harajuku. Stocks toys, gifts, and licensed merchandise from beloved Japanese and international brands. A joyful stop for all ages.","source":"Swedish Friend"},
+  {"name":"Mandarake Shibuya","name_jp":"まんだらけ 渋谷店","category":"SHIBUYA","type":"shop","address":"31-2 Udagawacho, Shibuya City, Tokyo 150-0042","phone":"+81 3-3477-0777","url":"http://www.mandarake.co.jp","description":"Tokyo's great anime and manga institution. Multiple floors of new and vintage anime merchandise, doujinshi, figures, old game cartridges and collectables. A pilgrimage site for enthusiasts.","source":"Swedish Friend"},
+  {"name":"Tokyu Hands Shibuya","name_jp":"東急ハンズ 渋谷店","category":"SHIBUYA","type":"shop","address":"12-18 Udagawacho, Shibuya City, Tokyo 150-0042","phone":"+81 3-5489-5111","url":"http://www.tokyu-hands.co.jp","description":"Japan's legendary lifestyle and creative supplies megastore — part hardware, part craft, part curiosity shop. Part Claes Ohlsson, part Muji, entirely indescribable and entirely indispensable.","source":"Swedish Friend"},
+  {"name":"Yoyogi Park","name_jp":"代々木公園","category":"SHIBUYA","type":"garden","address":"Yoyogikamizonocho, Shibuya City, Tokyo 151-0052","phone":null,"url":"N/A","description":"Harajuku's sweeping urban park where teenagers perform on weekends — rockabilly, street dance, rap and pop. Nearby streets are home to Tokyo's goth and rock subcultures selling accessories and fashion. A true slice of Tokyo's youth culture.","source":"Swedish Friend"},
+  {"name":"Albatross","name_jp":"アルバトロス","category":"SHINJUKU","type":"bar","address":"Golden Gai, Kabukicho, Shinjuku City, Tokyo","phone":null,"url":"http://www.albatross-tokyo.com","description":"A beloved, characterful bar inside Golden Gai. Recommended for a drink among the tiny atmospheric alleyway bars of Shinjuku's famous nightlife pocket.","source":"Swedish Friend"},
+  {"name":"Bic Camera Shinjuku","name_jp":"ビックカメラ 新宿西口店","category":"SHINJUKU","type":"shop","address":"1 Chome-11-1 Nishishinjuku, Shinjuku City, Tokyo 160-0023","phone":"+81 3-5326-1111","url":"http://www.biccamera.com","description":"Major electronics and camera retail chain. A destination for cameras, electronics, appliances and tech at duty-free prices. Located near the west exit of Shinjuku station.","source":"Swedish Friend"},
+  {"name":"Golden Gai","name_jp":"ゴールデン街","category":"SHINJUKU","type":"bar","address":"Kabukicho 1-chome, Shinjuku City, Tokyo 160-0021","phone":null,"url":"http://en.wikipedia.org/wiki/Shinjuku_Golden_Gai","description":"A legendary network of narrow alleyways behind the Shinjuku station east exit, lined with over 200 tiny bars seating just 3–4 people — like walking into someone's living room for a drink. Owners play their favourite music loud and chat freely. Some bars have tiny rooftop terraces in the shadows of skyscrapers. Great yakitori. Be prepared for a barbecue smoke festival.","source":"Swedish Friend"},
+  {"name":"Kabukicho","name_jp":"歌舞伎町","category":"SHINJUKU","type":"neighbourhood","address":"Kabukicho, Shinjuku City, Tokyo 160-0021","phone":null,"url":"N/A","description":"Tokyo's wildest nightlife district — bars, clubs, karaoke, izakayas and the unexpected. Nearly every unremarkable office-like building hides restaurants and bars across multiple floors. Shot bars, romantic piano bars with faux-French names, full cabaret and burlesque shows with various themes. Cheaper restaurants serving Kyushu, Chinese or Korean food are excellent value. Operated in part by the yakuza — exciting rather than truly dangerous.","source":"Swedish Friend"},
+  {"name":"Kinokuniya Bookstore Shinjuku","name_jp":"紀伊國屋書店 新宿本店","category":"SHINJUKU","type":"bookshop","address":"3 Chome-17-7 Shinjuku, Shinjuku City, Tokyo 160-0022","phone":"+81 3-3354-0131","url":"http://www.kinokuniya.co.jp","description":"One of Japan's great bookshop chains, with an extensive English-language section on the upper floors. An essential stop in Shinjuku.","source":"Swedish Friend"},
+  {"name":"Yodobashi Camera Shinjuku West","name_jp":"ヨドバシカメラ 新宿西口本店","category":"SHINJUKU","type":"shop","address":"1 Chome-11-1 Nishishinjuku, Shinjuku City, Tokyo 160-0023","phone":"+81 3-3346-1010","url":"http://www.yodobashi.com","description":"Massive multi-floor electronics megastore. A mini-Akihabara in central Shinjuku — cameras, computers, audio, appliances and gadgets at competitive prices.","source":"Swedish Friend"},
+
+  {"name":"Spring Valley Brewery Tokyo","name_jp":"スプリングバレーブルワリー東京","category":"SHIBUYA","type":"bar","address":"Log Road Daikanyama, 13-1 Daikanyamacho, Shibuya City, Tokyo 150-0033","phone":"+81 3-6416-4960","url":"http://www.springvalleybrewery.jp","description":"Kirin's flagship craft brewery and taproom in the stylish Log Road Daikanyama complex. Beer brewed on-site with a food menu designed to pair with the selection. An airy, industrial-chic space perfect for craft beer in Daikanyama.","source":"Carl Lidefelt"},
+  {"name":"Nikuya Yokocho Udagawacho","name_jp":"肉屋横丁 宇田川町","category":"SHIBUYA","type":"restaurant","address":"Udagawacho, Shibuya City, Tokyo 150-0042","phone":null,"url":"N/A","description":"Yakiniku restaurant in the Udagawacho area of Shibuya. Known for affordable wagyu beef sets in a lively, informal atmosphere.","source":"Carl Lidefelt"},
+  {"name":"Nakayoshi Shibuya Stream","name_jp":"中吉 渋谷ストリーム","category":"SHIBUYA","type":"restaurant","address":"Shibuya Stream, 3-21-3 Shibuya, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Japanese dining restaurant in the Shibuya Stream complex along the Shibuya River. Offers casual Japanese cuisine in the lively dining scene of this modern mixed-use building.","source":"Carl Lidefelt"},
+  {"name":"Hikiniku to Come Shibuya","name_jp":"挽肉と米 渋谷","category":"SHIBUYA","type":"restaurant","address":"Shibuya, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Specialty restaurant serving a single masterpiece dish: handmade beef patties cooked over charcoal, served over freshly steamed rice with miso soup. Originated in Kichijoji. Long queues — arrive early or join the waitlist.","source":"Carl Lidefelt"},
+  {"name":"Sushi no Midori Shibuya","name_jp":"すしの美登利 渋谷店","category":"SHIBUYA","type":"restaurant","address":"Shibuya Mark City, 1-12-3 Dogenzaka, Shibuya City, Tokyo 150-0043","phone":"+81 3-5458-0002","url":"N/A","description":"Popular and affordable sushi chain renowned for generous portions and extremely fresh fish at fair prices. Always busy — expect queues at peak times. One of Tokyo's best value sushi options.","source":"Carl Lidefelt"},
+  {"name":"Ebisu Yokocho","name_jp":"恵比寿横丁","category":"SHIBUYA","type":"bar","address":"1 Chome-7-4 Ebisu, Shibuya City, Tokyo 150-0013","phone":null,"url":"N/A","description":"A covered alley of some 20 tiny bars and restaurants in Ebisu — izakayas, yakitori stalls and hole-in-the-wall counters packed into a chaotic but atmospheric space. Lively after dark and excellent for bar-hopping.","source":"Carl Lidefelt"},
+  {"name":"Narukiyo","name_jp":"なるきよ","category":"SHIBUYA","type":"restaurant","address":"Shibuya, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Beloved izakaya in Shibuya with seasonal Japanese cooking. Go for the charcoal-grilled fish, housemade tofu and excellent sake selection. A neighbourhood gem.","source":"Carl Lidefelt"},
+  {"name":"Kyushu Jangara Ramen Harajuku","name_jp":"九州じゃんがら 原宿店","category":"SHIBUYA","type":"restaurant","address":"1 Chome-13-21 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3404-5572","url":"http://www.kyushu-jangara.co.jp","description":"Well-known Hakata-style tonkotsu ramen with a cult following. Near Takeshita Street — creamy, rich pork bone broth with thin noodles and classic toppings. Open until late.","source":"Carl Lidefelt"},
+  {"name":"Tonkatsu Tsukiuma Shibuya","name_jp":"とんかつ月うさぎ 渋谷","category":"SHIBUYA","type":"restaurant","address":"Shibuya, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Quality tonkatsu restaurant in Shibuya serving crispy, juicy pork cutlets with fluffy rice and miso soup. A satisfying lunch or dinner stop.","source":"Carl Lidefelt"},
+  {"name":"FUKU Yakitori","name_jp":"福 やきとり","category":"SHIBUYA","type":"restaurant","address":"Ebisu/Daikanyama area, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Excellent yakitori restaurant in the Shibuya area — one of the best in the neighbourhood. Skewers grilled over binchotan charcoal, served with cold beer or sake.","source":"Carl Lidefelt"},
+  {"name":"Yakitori Sei","name_jp":"やきとり誠","category":"SHIBUYA","type":"restaurant","address":"Shibuya, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"High-end yakitori restaurant with premium ingredients and meticulous technique. One of Tokyo's finest yakitori experiences — expect a higher price point but exceptional quality.","source":"Carl Lidefelt"},
+  {"name":"NEIGHBORHOOD HARAJUKU","name_jp":"ネイバーフッド 原宿","category":"SHIBUYA","type":"shop","address":"4 Chome-32-7 Jingumae, Shibuya City, Tokyo 150-0001","phone":"+81 3-3478-4590","url":"http://www.neighborhood.jp","description":"Harajuku flagship of the iconic Japanese menswear brand NEIGHBORHOOD. Known for its military-inspired, workwear and Americana aesthetics with exceptional quality. A must for lovers of Japanese street and workwear.","source":"Carl Lidefelt"},
+  {"name":"Pokemon Center Shibuya","name_jp":"ポケモンセンタースクランブル","category":"SHIBUYA","type":"shop","address":"Shibuya Scramble Square, 2-24-12 Shibuya, Shibuya City, Tokyo","phone":null,"url":"http://www.pokemon.co.jp","description":"Official Pokemon merchandise store in Shibuya Scramble Square. An extensive range of plush toys, trading cards, clothing, accessories and gifts for fans of all ages.","source":"Carl Lidefelt"},
+  {"name":"JAM Harajuku","name_jp":"JAM 原宿","category":"SHIBUYA","type":"vintage","address":"Harajuku, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Well-known used clothing chain with a Harajuku store catering to the area's fashion-forward crowd. Good mix of vintage American and Japanese clothing, accessories and workwear at accessible prices.","source":"Carl Lidefelt"},
+  {"name":"Atlantis Vintage Tokyo","name_jp":"アトランティスビンテージ","category":"SHIBUYA","type":"vintage","address":"Harajuku, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Highly-rated vintage store in Harajuku (4.9 stars) with a curated selection of quality vintage clothing and accessories. Known for standout pieces at fair prices.","source":"Carl Lidefelt"},
+  {"name":"Chicago Harajuku","name_jp":"シカゴ 原宿店","category":"SHIBUYA","type":"vintage","address":"Jingumae, Shibuya City, Tokyo 150-0001","phone":null,"url":"N/A","description":"Harajuku branch of the beloved Chicago used clothing stores — one of Tokyo's most iconic vintage chains. Massive selection of vintage American pieces, sold by weight or at fixed prices. A comprehensive source for vintage hunting.","source":"Carl Lidefelt"},
+  {"name":"10tow","name_jp":"トウ","category":"SHIBUYA","type":"vintage","address":"Jingumae, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"Japanese second-hand shop focusing on harder-to-find Japanese brands and unique footwear. Worth exploring for distinctive vintage finds.","source":"Carl Lidefelt"},
+  {"name":"RAGTAG Omotesando","name_jp":"RAGTAG 表参道","category":"SHIBUYA","type":"vintage","address":"Jingumae, Shibuya City, Tokyo 150-0001","phone":null,"url":"http://www.ragtag.jp","description":"Omotesando branch of Japan's premier used luxury and designer clothing chain. Finds from brands like Comme des Garçons, Yohji Yamamoto and Issey Miyake at significantly reduced prices.","source":"Carl Lidefelt"},
+  {"name":"Cerulean Tower Tokyu Hotel","name_jp":"セルリアンタワー東急ホテル","category":"SHIBUYA","type":"hotel","address":"26-1 Sakuragaoka-cho, Shibuya City, Tokyo 150-8512","phone":"+81 3-3476-3000","url":"http://www.ceruleantower-hotel.com","description":"Upscale hotel towering over Shibuya with sweeping city views from the upper floors. Features a jazz club and excellent dining. One of Shibuya's most reliable luxury stays.","source":"Carl Lidefelt"},
+
+  {"name":"Kanda Ponchiken","name_jp":"神田ぽんち軒","category":"CHIYODA","type":"restaurant","address":"Kanda, Chiyoda City, Tokyo","phone":null,"url":"N/A","description":"Well-regarded tonkatsu restaurant in the Kanda district, known for carefully breaded and fried pork cutlets using quality domestic pork. A popular lunch destination for workers and visitors in the Kanda area.","source":"Carl Lidefelt"},
+  {"name":"Tempura Abe Honten","name_jp":"天ぷら阿部 本店","category":"CHIYODA","type":"restaurant","address":"Kanda, Chiyoda City, Tokyo","phone":null,"url":"N/A","description":"Classic tempura restaurant in the Kanda area serving Edomae-style tempura with fresh seasonal ingredients. Traditional preparation in a neighbourhood setting.","source":"Carl Lidefelt"},
+  {"name":"Ganso Stamina Manten Ramen","name_jp":"元祖スタミナ満点ラーメン","category":"CHIYODA","type":"restaurant","address":"Kanda, Chiyoda City, Tokyo","phone":null,"url":"N/A","description":"Hearty, energy-boosting ramen in the Kanda area. Big, bold bowls designed to satisfy big appetites — popular with workers and students in the surrounding district.","source":"Carl Lidefelt"},
+  {"name":"BEAMS PLUS Marunouchi","name_jp":"ビームスプラス 丸の内","category":"CHIYODA","type":"shop","address":"Marunouchi, Chiyoda City, Tokyo","phone":null,"url":"http://www.beams.co.jp","description":"The Ivy League-inspired BEAMS PLUS menswear label in a Marunouchi location. Exceptional quality Americana-influenced clothing, tailoring and accessories from Japan's leading select shop.","source":"Carl Lidefelt"},
+
+  {"name":"Ginza Sand","name_jp":"銀座サンド","category":"CHUO/GINZA","type":"restaurant","address":"Ginza, Chuo City, Tokyo 104-0061","phone":null,"url":"N/A","description":"Famous katsu sandwich shop in Ginza. Crispy tonkatsu pressed between fluffy white bread with a signature sauce — one of Tokyo's most celebrated katsu sando. A must for sandiwch lovers.","source":"Carl Lidefelt"},
+  {"name":"WAGYU SUKIYAKI GOKU","name_jp":"WAGYU SUKIYAKI 極","category":"CHUO/GINZA","type":"restaurant","address":"Ginza, Chuo City, Tokyo","phone":null,"url":"N/A","description":"Premium wagyu sukiyaki restaurant. The name 'GOKU' (極) signals a commitment to the highest grade beef — thin slices of A5 wagyu simmered in sweet soy broth, dipped in raw egg. An iconic Japanese dining experience at its finest.","source":"Carl Lidefelt"},
+  {"name":"Conveyor Kaiten Sushi Ginza Onodera","name_jp":"廻る 銀座おのでら","category":"CHUO/GINZA","type":"restaurant","address":"Ginza, Chuo City, Tokyo 104-0061","phone":null,"url":"N/A","description":"Premium conveyor belt sushi concept by the acclaimed Ginza Onodera group. Michelin-quality fish served on a belt at accessible prices — a brilliant compromise between fine sushi and casual dining.","source":"Carl Lidefelt"},
+  {"name":"Yomoda Soba Ginza","name_jp":"よもだそば 銀座店","category":"CHUO/GINZA","type":"restaurant","address":"Ginza, Chuo City, Tokyo","phone":null,"url":"N/A","description":"Ginza branch of a well-regarded Tokyo soba chain, serving freshly made buckwheat noodles. Reliable and satisfying.","source":"Carl Lidefelt"},
+  {"name":"Coco Nemaru Ginza","name_jp":"ここねまる 銀座","category":"CHUO/GINZA","type":"restaurant","address":"Ginza, Chuo City, Tokyo","phone":null,"url":"N/A","description":"Premium yakiniku restaurant in Ginza specializing in A5 wagyu beef. An indulgent grilling experience in one of Tokyo's finest dining neighbourhoods.","source":"Carl Lidefelt"},
+
+  {"name":"Sky Lounge Stellar Garden","name_jp":"スカイラウンジ ステラガーデン","category":"MINATO","type":"bar","address":"Prince Park Tower Tokyo, 4-8-1 Shibakoen, Minato City, Tokyo 105-8563","phone":"+81 3-5400-1111","url":"N/A","description":"Rooftop bar on the 33rd floor of the Prince Park Tower Tokyo in Shibakoen. Panoramic views of the illuminated Tokyo Tower and city skyline — one of Tokyo's most scenic cocktail destinations, especially after dark.","source":"Carl Lidefelt"},
+  {"name":"Nippon no Yoshoku Akasaka Tsutsui","name_jp":"日本の洋食 赤坂つつい","category":"MINATO","type":"restaurant","address":"Akasaka, Minato City, Tokyo","phone":null,"url":"N/A","description":"Yoshoku restaurant in upscale Akasaka specializing in beloved Japanese-Western hybrid cuisine from the Meiji era: omurice, hayashi rice, hamburger steak and doria, all prepared with great care and comfort. Meat-forward menu.","source":"Carl Lidefelt"},
+  {"name":"Iruca Tokyo Roppongi","name_jp":"いるか東京 六本木","category":"MINATO","type":"restaurant","address":"Roppongi, Minato City, Tokyo","phone":null,"url":"N/A","description":"Creative ramen shop in Roppongi known for its refined, delicate approach — clear broths and artisan noodles that stand apart from traditional styles. Has earned recognition among ramen enthusiasts for distinctive presentations.","source":"Carl Lidefelt"},
+  {"name":"Miroku Akasaka","name_jp":"弥勒 赤坂","category":"MINATO","type":"restaurant","address":"Akasaka, Minato City, Tokyo","phone":null,"url":"N/A","description":"Cozy izakaya in Akasaka with seasonal Japanese dishes and a good sake selection. Recommended by Micke Einarsson.","source":"Carl Lidefelt"},
+  {"name":"Roppongi Robataya","name_jp":"六本木 炉端焼","category":"MINATO","type":"restaurant","address":"Roppongi, Minato City, Tokyo 106-0032","phone":null,"url":"N/A","description":"Traditional robata grill restaurant in Roppongi. Diners select from fresh ingredients displayed on a low counter and watch them grilled over charcoal. Classic theatrical Tokyo dining.","source":"Carl Lidefelt"},
+  {"name":"PST Azabu","name_jp":"Pizza Studio Tamaki 麻布","category":"MINATO","type":"restaurant","address":"Higashiazabu area, Minato City, Tokyo","phone":null,"url":"N/A","description":"Another superb pizza by chef Tamaki in the Azabu area — excellent Neapolitan-style pizza. (Note: also see PST Higashi Azabu and PST Roppongi.)","source":"Carl Lidefelt"},
+  {"name":"Akasaka Antique Market in Ark Hills","name_jp":"赤坂アンティークマーケット","category":"MINATO","type":"vintage","address":"Ark Hills, Akasaka, Minato City, Tokyo","phone":null,"url":"N/A","description":"Regular antique and vintage market held in the Ark Hills complex in Akasaka. A curated, upscale flea market experience with dealers specializing in antiques, art and vintage goods.","source":"Carl Lidefelt"},
+
+  {"name":"Sushi Dai","name_jp":"寿司大","category":"KOTO","type":"restaurant","address":"Toyosu Market, 6 Chome-5-1 Toyosu, Koto City, Tokyo","phone":null,"url":"N/A","description":"One of Tokyo's most famous sushi counters, located at Toyosu Market. Legendary queues can stretch 3+ hours, but worth every minute for fresh-from-the-market Edomae sushi at remarkably accessible prices. Former Tsukiji institution.","source":"Carl Lidefelt"},
+  {"name":"teamLab Planets TOKYO","name_jp":"チームラボプラネッツ TOKYO","category":"KOTO","type":"museum","address":"6 Chome-1-16 Toyosu, Koto City, Tokyo 135-0061","phone":null,"url":"http://www.teamlab.art/e/planets","description":"Immersive digital art museum in Toyosu with four large-scale environments themed around water and nature. Walk through and wade into the art installations — more intimate and physical than teamLab Borderless. Book tickets well in advance.","source":"Carl Lidefelt"},
+
+  {"name":"Meguro Parasitological Museum","name_jp":"目黒寄生虫館","category":"MEGURO","type":"museum","address":"4 Chome-1-1 Shimo-Meguro, Meguro City, Tokyo 153-0064","phone":"+81 3-3716-1264","url":"http://www.kiseichu.org","description":"The world's only museum dedicated entirely to parasites, free to enter in a quiet Meguro street. Over 60 years of research on display — highlights include a preserved 8.8-metre tapeworm. Surprisingly compelling and utterly unique.","source":"Carl Lidefelt"},
+  {"name":"Kindal Jiyugaoka","name_jp":"カインドオル 自由が丘","category":"MEGURO","type":"vintage","address":"Jiyugaoka, Meguro City, Tokyo","phone":null,"url":"N/A","description":"Branch of the Kindal used clothing chain near Jiyugaoka station. Specializes in second-hand branded and designer fashion at competitive prices.","source":"Carl Lidefelt"},
+  {"name":"2nd STREET Jiyugaoka","name_jp":"2ndSTREET 自由が丘","category":"MEGURO","type":"vintage","address":"Jiyugaoka, Meguro City, Tokyo","phone":null,"url":"http://www.2ndstreet.jp","description":"Jiyugaoka branch of Japan's largest used goods retail network. Wide selection of second-hand clothing and accessories at affordable prices.","source":"Carl Lidefelt"},
+  {"name":"Rehello by BOOKOFF Jiyugaoka","name_jp":"リハロウバイブックオフ 自由が丘","category":"MEGURO","type":"vintage","address":"Jiyugaoka, Meguro City, Tokyo","phone":null,"url":"N/A","description":"Second-hand clothing and accessories store by the BOOKOFF Group in Jiyugaoka. Good selection of used fashion at competitive prices — a reliable stop in the area's thriving vintage shopping scene.","source":"Carl Lidefelt"},
+  {"name":"Nakameguro","name_jp":"中目黒","category":"MEGURO","type":"neighbourhood","address":"Nakameguro, Meguro City, Tokyo 153-0061","phone":null,"url":"N/A","description":"One of Tokyo's trendiest neighbourhoods, built around a canal lined with cafés, boutiques and restaurants. The cherry blossoms along the canal in spring are among the most spectacular in the city. Worth an afternoon wander.","source":"Carl Lidefelt"},
+  {"name":"Jiyugaoka","name_jp":"自由が丘","category":"MEGURO","type":"neighbourhood","address":"Jiyugaoka, Meguro City, Tokyo 152-0035","phone":null,"url":"N/A","description":"Charming residential neighbourhood south of Meguro, dotted with European-inspired patisseries and a strong vintage shopping scene. A pleasant half-day wander from central Tokyo.","source":"Carl Lidefelt"},
+  {"name":"Coverchord Nakameguro","name_jp":"カバーコード 中目黒","category":"MEGURO","type":"shop","address":"Nakameguro, Meguro City, Tokyo","phone":null,"url":"http://www.coverchord.jp","description":"Clothing boutique in Nakameguro with a curated selection of Japanese and international independent brands. Part of Nakameguro's excellent independent shopping scene.","source":"Carl Lidefelt"},
+
+  {"name":"Omoide Yokocho","name_jp":"思い出横丁","category":"SHINJUKU","type":"bar","address":"1 Chome Nishishinjuku, Shinjuku City, Tokyo 160-0023","phone":null,"url":"N/A","description":"Tokyo's most atmospheric yakitori alley — Memory Lane — tucked beside Shinjuku station's west exit. Rows of tiny smoke-filled stalls grilling chicken, innards and vegetables over charcoal since the 1940s. An essential Tokyo night out.","source":"Carl Lidefelt"},
+  {"name":"Hanazono Shrine","name_jp":"花園神社","category":"SHINJUKU","type":"shrine","address":"5 Chome-17-3 Shinjuku, Shinjuku City, Tokyo 160-0022","phone":"+81 3-3209-5265","url":"N/A","description":"Compact but atmospheric Shinto shrine in the heart of Kabukicho, dedicated to Inari. Holds popular antique and flea markets on weekends. One of the few green spaces amid Shinjuku's neon-lit chaos.","source":"Carl Lidefelt"},
+  {"name":"Shinjuku Gyoen National Garden","name_jp":"新宿御苑","category":"SHINJUKU","type":"garden","address":"11 Naitomachi, Shinjuku City, Tokyo 160-0014","phone":"+81 3-3350-0151","url":"http://www.env.go.jp/garden/shinjukugyoen/index.html","description":"Tokyo's most beloved national garden, blending formal French, English and Japanese landscape styles. Famous for its spectacular cherry blossoms in late March and early April. A peaceful retreat in the heart of Shinjuku.","source":"Carl Lidefelt"},
+  {"name":"Robatasho","name_jp":"炉端処","category":"SHINJUKU","type":"restaurant","address":"Shinjuku, Shinjuku City, Tokyo","phone":null,"url":"N/A","description":"Traditional robata grill izakaya in Shinjuku. Ingredients grilled over charcoal at an open hearth counter. Recommended by Patte.","source":"Carl Lidefelt"},
+  {"name":"Sōsakumen Kōbō Nakiryū","name_jp":"創作麺工房 鳴龍","category":"TOSHIMA","type":"restaurant","address":"1 Chome-17-1 Minamiikebukuro, Toshima City, Tokyo 171-0022","phone":null,"url":"N/A","description":"Michelin-starred ramen restaurant in Minami-Ikebukuro, renowned for its deeply layered tantanmen — a spicy, aromatic sesame broth. One of the few ramen restaurants in the world to earn a Michelin star. Long queues — arrive before opening.","source":"Carl Lidefelt"},
+  {"name":"Gokokuji Temple","name_jp":"護国寺","category":"TOSHIMA","type":"temple","address":"5 Chome-40-1 Otsuka, Bunkyo City, Tokyo 112-0012","phone":"+81 3-3941-0764","url":"N/A","description":"Well-preserved Edo-era Buddhist temple founded in 1681, one of the few Tokyo temples to survive both the 1923 earthquake and WWII bombing intact. A flea market is held on the second Saturday of each month in the temple grounds.","source":"Carl Lidefelt"},
+  {"name":"Sugamo Jizodori Shopping Street","name_jp":"巣鴨地蔵通り商店街","category":"TOSHIMA","type":"shopping street","address":"Sugamo, Toshima City, Tokyo 170-0002","phone":null,"url":"N/A","description":"Traditional covered shopping street in Sugamo, lovingly known as 'grandma's Harajuku'. Full of traditional confectionery shops, pickled foods and the famous red underwear said to bring good health. A charming, authentic slice of old Tokyo.","source":"Carl Lidefelt"},
+
+  {"name":"KAKINUMA KNIVES Kappabashi","name_jp":"カキヌマ 合羽橋","category":"TAITO","type":"shop","address":"Kappabashi, Taito City, Tokyo","phone":null,"url":"N/A","description":"Specialized Japanese knife shop on the famous Kappabashi kitchen equipment street between Ueno and Asakusa. Sells a superb range of professional Japanese kitchen knives — an excellent place for a high-quality culinary souvenir.","source":"Carl Lidefelt"},
+
+  {"name":"PERFECT BEER KITCHEN NISHIOGI","name_jp":"パーフェクトビアキッチン西荻","category":"SUGINAMI","type":"bar","address":"Nishiogikubo, Suginami City, Tokyo","phone":null,"url":"N/A","description":"Craft beer bar in Nishiogikubo with a rotating selection of Japanese and international craft beers. Set in the lively, bohemian neighbourhood around Nishiogikubo station — a more local, less-touristy Tokyo experience.","source":"Carl Lidefelt"},
+
+  {"name":"Nezu Shrine","name_jp":"根津神社","category":"BUNKYO","type":"shrine","address":"1 Chome-28-9 Nezu, Bunkyo City, Tokyo 113-0031","phone":"+81 3-3822-0753","url":"http://www.nedujinja.or.jp","description":"One of Tokyo's most enchanting shrines, famous for a long tunnel of vermillion torii gates winding up the hillside — similar to Kyoto's Fushimi Inari but far less crowded. The azalea garden is spectacular in spring. Combine with a walk through the charming Yanaka neighbourhood.","source":"Carl Lidefelt"},
+  {"name":"Rikugien Gardens","name_jp":"六義園","category":"BUNKYO","type":"garden","address":"6 Chome-16-3 Honkomagome, Bunkyo City, Tokyo 113-0021","phone":"+81 3-3941-2222","url":"N/A","description":"One of Tokyo's finest stroll gardens, created in the early 18th century. The central pond reflects beautifully contoured hills and sculpted pines. Extraordinary in autumn foliage season — the weeping cherry tree is illuminated at night in spring.","source":"Carl Lidefelt"},
+  {"name":"Koishikawa Korakuen","name_jp":"小石川後楽園","category":"BUNKYO","type":"garden","address":"1 Chome-6-6 Koraku, Bunkyo City, Tokyo 112-0004","phone":"+81 3-3811-3015","url":"N/A","description":"Tokyo's oldest surviving Japanese garden, begun in 1629. A masterpiece of the stroll garden style with a large central pond and miniature representations of famous Japanese landscapes. Located immediately beside Tokyo Dome — one of Tokyo's most peaceful retreats.","source":"Carl Lidefelt"},
+
+  {"name":"Gotokuji Temple","name_jp":"豪徳寺","category":"SETAGAYA","type":"temple","address":"2 Chome-24-7 Gotokuji, Setagaya City, Tokyo 156-0057","phone":"+81 3-3426-1437","url":"N/A","description":"The birthplace of the maneki-neko (lucky cat) figurine, with hundreds of white porcelain lucky cats of all sizes donated by grateful visitors. A magical, peaceful temple in Setagaya — well worth the trip. The surrounding neighbourhood is delightful to explore on foot.","source":"Carl Lidefelt"},
+
+  {"name":"OMO5 Tokyo Gotanda by Hoshino Resorts","name_jp":"OMO5 東京五反田","category":"SHINAGAWA","type":"hotel","address":"2 Chome-1-9 Higashigotanda, Shinagawa City, Tokyo 141-0022","phone":"+81 3-6435-5581","url":"http://www.hoshinoresorts.com/en/hotels/omo5tokyogotanda","description":"Urban lifestyle hotel by Hoshino Resorts' OMO brand in Gotanda, designed to encourage local neighbourhood exploration. Stylish, compact rooms with a focus on connecting guests with the surrounding community.","source":"Carl Lidefelt"},
+  {"name":"Tokyo City Flea Market at Oi Racecourse","name_jp":"東京シティ競馬フリーマーケット","category":"SHINAGAWA","type":"vintage","address":"Oi Racecourse, 2 Chome-1-2 Katsushimacho, Shinagawa City, Tokyo","phone":null,"url":"N/A","description":"One of Tokyo's largest outdoor flea markets, held monthly in the Oi Racecourse car park. Hundreds of vendors selling antiques, vintage clothing, collectables and curiosities. A treasure-hunter's paradise — check the schedule before visiting.","source":"Carl Lidefelt"},
+
+  {"name":"Harmonica Yokocho","name_jp":"ハモニカ横丁","category":"MUSASHINO","type":"bar","address":"Kichijoji, Musashino City, Tokyo 180-0003","phone":null,"url":"N/A","description":"A tiny labyrinth of narrow alleyways in Kichijoji, lined with miniature bars, standing ramen shops and yakitori stalls. Hard to find but worth seeking out — an atmospheric slice of old Japan tucked away from the busy Kichijoji shopping streets. Enter from the north side of the station.","source":"Carl Lidefelt"},
+  {"name":"Kaitenzushi MISAKI Kichijoji","name_jp":"廻転寿し MISAKI 吉祥寺","category":"MUSASHINO","type":"restaurant","address":"Kichijoji, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Popular conveyor belt sushi in Kichijoji known for high-quality fish at reasonable prices. A reliable kaiten sushi choice while exploring the Kichijoji area.","source":"Carl Lidefelt"},
+  {"name":"RAGTAG Kichijoji","name_jp":"RAGTAG 吉祥寺","category":"MUSASHINO","type":"vintage","address":"Kichijoji, Musashino City, Tokyo 180-0003","phone":null,"url":"http://www.ragtag.jp","description":"Kichijoji branch of RAGTAG, Japan's premier used luxury and designer clothing consignment chain. Excellent selection of pre-loved Japanese and international designer brands — Comme des Garçons, Yohji Yamamoto and more — at significantly reduced prices.","source":"Carl Lidefelt"},
+  {"name":"TreFacStyle Kichijoji","name_jp":"TreFacStyle 吉祥寺","category":"MUSASHINO","type":"vintage","address":"Kichijoji, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Used clothing and vintage store in Kichijoji with a focus on casual and lifestyle brands.","source":"Carl Lidefelt"},
+  {"name":"Mode Off Kichijoji","name_jp":"モードオフ 吉祥寺","category":"MUSASHINO","type":"vintage","address":"Kichijoji, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Used clothing and goods store (part of the Hard Off group) in Kichijoji. Good selection of used fashion and accessories at low prices — great for casual vintage finds.","source":"Carl Lidefelt"},
+  {"name":"2nd Street Kichijoji Sunroad","name_jp":"2ndSTREET 吉祥寺サンロード","category":"MUSASHINO","type":"vintage","address":"Kichijoji Sunroad, Musashino City, Tokyo","phone":null,"url":"http://www.2ndstreet.jp","description":"2nd STREET used clothing along the covered Sunroad shopping arcade in Kichijoji. A convenient stop in the heart of Kichijoji's lively shopping area.","source":"Carl Lidefelt"},
+  {"name":"Kindal Kichijoji","name_jp":"カインドオル 吉祥寺","category":"MUSASHINO","type":"vintage","address":"Kichijoji, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Kindal second-hand clothing in Kichijoji. Part of a well-known used fashion chain with a curated selection of branded items.","source":"Carl Lidefelt"},
+  {"name":"dracaena","name_jp":"古着屋ドラセナ","category":"MUSASHINO","type":"vintage","address":"Kichijoji, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Independent used clothing shop (古着屋) in the Kichijoji area with a carefully selected collection. Worth exploring for unique finds.","source":"Carl Lidefelt"},
+  {"name":"Kichijoji","name_jp":"吉祥寺","category":"MUSASHINO","type":"neighbourhood","address":"Kichijoji, Musashino City, Tokyo 180-0003","phone":null,"url":"N/A","description":"One of Tokyo's most-loved residential neighbourhoods — a lively district packed with indie cafés, vinyl shops, vintage clothing stores, the covered Sunroad arcade and Harmonica Yokocho bar alley. Pairs perfectly with a Ghibli Museum visit.","source":"Carl Lidefelt"},
+
+  {"name":"New York Joe Shimokitazawa","name_jp":"ニューヨークジョー 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo 155-0031","phone":"+81 3-3414-6668","url":"http://www.newyorkjoe.jp","description":"A Shimokitazawa institution — upscale used clothing exchange with a curated, American-influenced selection. Trade in your clothes for store credit or browse the well-organized racks. One of Shimokitazawa's best.","source":"Carl Lidefelt"},
+  {"name":"Flamingo Shimokitazawa","name_jp":"フラミンゴ 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Multiple floors of curated vintage clothing in a prime Shimokitazawa location. Strong selection of Americana, streetwear and statement pieces. A reliable stop on the Shimokitazawa vintage circuit.","source":"Carl Lidefelt"},
+  {"name":"KINJI Shimokitazawa","name_jp":"キンジ 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Affordable used clothing chain with a huge rotating stock in Shimokitazawa. Excellent for budget vintage finds — a large selection of casual and workwear.","source":"Carl Lidefelt"},
+  {"name":"BIG TIME Shimokitazawa","name_jp":"ビッグタイム 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Curated vintage shop in Shimokitazawa with a well-edited selection of Japanese and Western clothing. Worth visiting for distinctive pieces.","source":"Carl Lidefelt"},
+  {"name":"RAGLA MAGLA Shimokitazawa","name_jp":"ラグラマグラ 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Vintage and used clothing store in Shimokitazawa with a casual, approachable selection.","source":"Carl Lidefelt"},
+  {"name":"Desert Snow Shimokitazawa","name_jp":"デザートスノウ 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Vintage clothing shop in Shimokitazawa with a focus on American and European vintage. Part of the neighbourhood's rich secondhand fashion scene.","source":"Carl Lidefelt"},
+  {"name":"Top of the Hill Shimokitazawa","name_jp":"トップオブザヒル 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Vintage clothing shop in Shimokitazawa, part of the neighbourhood's thriving secondhand fashion scene.","source":"Carl Lidefelt"},
+  {"name":"Treasure Factory Style Shimokitazawa","name_jp":"トレジャーファクトリー 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Branch of the Treasure Factory chain in Shimokitazawa. Affordable used clothing, accessories and everyday items — great for casual finds.","source":"Carl Lidefelt"},
+  {"name":"Chicago Shimokitazawa","name_jp":"シカゴ 下北沢","category":"KITAZAWA","type":"vintage","address":"Shimokitazawa, Setagaya City, Tokyo","phone":null,"url":"N/A","description":"Shimokitazawa branch of Chicago — one of Tokyo's most iconic used clothing chains. Large selection of vintage American clothing from the 50s through 90s at accessible prices.","source":"Carl Lidefelt"},
+
+  {"name":"Blue Bottle Coffee Aoyama","name_jp":"ブルーボトルコーヒー 青山カフェ","category":"AOYAMA","type":"cafe","address":"5 Chome-14-12 Minamiaoyama, Minato City, Tokyo 107-0062","phone":null,"url":"http://www.bluebottlecoffee.com","description":"A calm, minimal outpost of the celebrated specialty coffee brand in an atmospheric converted building in Aoyama. Exceptionally consistent coffee — a perfect pit stop on the Aoyama shopping circuit.","source":"Carl Lidefelt"},
+
+  {"name":"STRIDE LAB Tokyo","name_jp":"ストライドラボ 東京本店","category":"SHINJUKU","type":"shop","address":"Shinjuku, Shinjuku City, Tokyo","phone":null,"url":"N/A","description":"Specialty running store offering biomechanical gait analysis and expert shoe fitting. Staff analyze your stride on a treadmill to recommend the optimal footwear. The best running shoe shopping experience in Tokyo.","source":"Carl Lidefelt"}
+];
+
+// ── NEIGHBOURHOOD COORDINATES ───────────────────────────────────────
+const NBHD_COORDS = {
+  "AOYAMA":       {lat: 35.6700, lng: 139.7145},
+  "ARAKAWA":      {lat: 35.7316, lng: 139.7836},
+  "CHIYODA":      {lat: 35.6840, lng: 139.7534},
+  "CHUO/CITY":    {lat: 35.6868, lng: 139.7749},
+  "CHUO/GINZA":   {lat: 35.6717, lng: 139.7648},
+  "CHUO/TSUKIJI": {lat: 35.6654, lng: 139.7707},
+  "CHUO":         {lat: 35.6868, lng: 139.7749},
+  "KATSUSHIKA":   {lat: 35.7337, lng: 139.8473},
+  "KITAZAWA":     {lat: 35.6613, lng: 139.6680},
+  "KOTO":         {lat: 35.6730, lng: 139.8178},
+  "MEGURO":       {lat: 35.6357, lng: 139.7154},
+  "MINATO":       {lat: 35.6566, lng: 139.7515},
+  "NAKANO":       {lat: 35.7056, lng: 139.6639},
+  "ROPPONGI":     {lat: 35.6631, lng: 139.7312},
+  "SETAGAYA":     {lat: 35.6464, lng: 139.6531},
+  "SHIBUYA":      {lat: 35.6580, lng: 139.7016},
+  "SHINJUKU":     {lat: 35.6938, lng: 139.7034},
+  "SUGINAMI":     {lat: 35.6994, lng: 139.6367},
+  "SUMIDA":       {lat: 35.7118, lng: 139.8016},
+  "TAITO":        {lat: 35.7141, lng: 139.7774},
+  "TOSHIMA":      {lat: 35.7295, lng: 139.7109},
+  "MITAKA":       {lat: 35.6837, lng: 139.5592},
+  "KYOTO":        {lat: 35.0116, lng: 135.7681},
+  "MUSASHINO":    {lat: 35.7029, lng: 139.5803},
+  "BUNKYO":       {lat: 35.7077, lng: 139.7519},
+  "SHINAGAWA":    {lat: 35.6284, lng: 139.7387}
+};
+
+// ── TYPE COLOR MAP ───────────────────────────────────────────────────
+const TYPE_COLORS = {
+  "restaurant":     "#c41e3a",
+  "cafe":           "#8B4513",
+  "shop":           "#1a1a1a",
+  "vintage":        "#b5651d",
+  "gallery":        "#4a4a8a",
+  "museum":         "#2d5a27",
+  "bar":            "#6b4c9a",
+  "bookshop":       "#d4651a",
+  "architecture":   "#555",
+  "shrine":         "#c41e3a",
+  "temple":         "#c41e3a",
+  "market":         "#555",
+  "garden":         "#2d5a27",
+  "hotel":          "#555",
+  "arts complex":   "#4a4a8a",
+  "shopping street":"#555",
+  "neighbourhood":  "#555",
+  "activity":       "#555",
+  "other":          "#999"
+};
+
+// ── TYPE EMOJI MAP ───────────────────────────────────────────────────
+const TYPE_EMOJI = {
+  "restaurant":     "🍽",
+  "cafe":           "☕",
+  "café":           "☕",
+  "bar":            "🍸",
+  "shop":           "🛍",
+  "vintage":        "👗",
+  "gallery":        "🎨",
+  "museum":         "🏛",
+  "bookshop":       "📚",
+  "temple":         "🏯",
+  "shrine":         "⛩",
+  "garden":         "🌿",
+  "hotel":          "🏨",
+  "architecture":   "🏗",
+  "market":         "🏷",
+  "shopping street":"🛒",
+  "neighbourhood":  "🗺",
+  "activity":       "🎭",
+  "other":          "📍"
+};
+
+// ── STARRED PLACES ────────────────────────────────────────────────────
+const STARRED = new Set(JSON.parse(localStorage.getItem('tokyo-starred') || '[]'));
+
+function saveStarred() {
+  const arr = [...STARRED];
+  localStorage.setItem('tokyo-starred', JSON.stringify(arr));
+  // Sync to server in background — keeps all devices in sync
+  fetch('/api/starred', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(arr)
+  }).catch(() => {});
+}
+
+// On load: merge server state into local (handles other device's stars)
+(async function loadServerStarred() {
+  try {
+    const res = await fetch('/api/starred');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return;
+    let changed = false;
+    data.forEach(n => { if (!STARRED.has(n)) { STARRED.add(n); changed = true; } });
+    if (changed) {
+      localStorage.setItem('tokyo-starred', JSON.stringify([...STARRED]));
+      renderBrowse();
+      renderStarred();
+    }
+  } catch(e) {
+    // API not available (local dev) — localStorage only
+  }
+})();
+
+function toggleStar(name) {
+  if (STARRED.has(name)) { STARRED.delete(name); } else { STARRED.add(name); }
+  saveStarred();
+  renderBrowse();
+  if (document.getElementById('tab-nearme').classList.contains('active')) renderNearmeList();
+  renderStarred();
+}
+function renderStarred() {
+  const list = document.getElementById('starredList');
+  const empty = document.getElementById('starredEmpty');
+  const hero = document.getElementById('starredHero');
+  const starredPlaces = PLACES.filter(p => STARRED.has(p.name));
+  if (starredPlaces.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    hero.style.display = '';
+  } else {
+    empty.style.display = 'none';
+    hero.style.display = 'none';
+    list.innerHTML = starredPlaces.map(p => buildCardHTML(p, false)).join('');
+  }
+}
+
+// Type normalisation for filter purposes
+const TYPE_FILTER_MAP = {
+  "cafe": "cafe",
+  "café": "cafe",
+  "restaurant": "restaurant",
+  "shop": "shop",
+  "vintage": "vintage",
+  "gallery": "gallery",
+  "museum": "museum",
+  "bar": "bar",
+  "bookshop": "bookshop",
+  "architecture": "architecture"
+};
+
+function getFilterType(type) {
+  const t = (type || '').toLowerCase();
+  return TYPE_FILTER_MAP[t] || 'other';
+}
+
+function getTypeColor(type) {
+  const t = (type || '').toLowerCase();
+  return TYPE_COLORS[t] || TYPE_COLORS['other'];
+}
+
+// ── HAVERSINE DISTANCE ───────────────────────────────────────────────
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // metres
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2)
+          + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180)
+          * Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function formatDistance(m) {
+  if (m < 1000) return Math.round(m) + 'm';
+  return (m / 1000).toFixed(1) + 'km';
+}
+
+// ── GOOGLE MAPS URLS ─────────────────────────────────────────────────
+function mapsSearchUrl(place) {
+  const q = place.name + ' ' + (place.address || 'Tokyo');
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+}
+function mapsDirectionsUrl(place) {
+  const q = place.name + ' ' + (place.address || 'Tokyo');
+  return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(q);
+}
+
+// ── BUILD CARD HTML ──────────────────────────────────────────────────
+function buildCardHTML(place, showDistance) {
+  const color = getTypeColor(place.type);
+  const emoji = TYPE_EMOJI[(place.type || '').toLowerCase()] || TYPE_EMOJI['other'];
+  const isStarred = STARRED.has(place.name);
+  const nameJp = place.name_jp ? `<div class="card-name-jp">${escHtml(place.name_jp)}</div>` : '';
+  const distHtml = (showDistance && place._distance != null)
+    ? `<span class="card-distance">${formatDistance(place._distance)}</span>` : '';
+  const dirBtn = showDistance
+    ? `<a class="btn-directions" href="${mapsDirectionsUrl(place)}" target="_blank" rel="noopener">↗ Directions</a>`
+    : '';
+  const siteBtn = (place.url && place.url !== 'N/A' && place.url !== null)
+    ? `<a class="btn-site" href="${escHtml(place.url)}" target="_blank" rel="noopener">↗ Website</a>`
+    : '';
+  const sourceHtml = (place.source && place.source !== 'Tokyo Guide')
+    ? `<span class="card-source">via ${escHtml(place.source)}</span>`
+    : '';
+  return `
+    <div class="place-card" style="--card-accent:${color}">
+      <div class="card-top">
+        <span class="card-type-icon">${emoji}</span>
+        <div class="card-main">
+          <div class="card-meta">
+            <span class="card-neighborhood">${escHtml(place.category)}</span>
+            <span class="card-type-badge">${escHtml(place.type)}</span>
+            ${sourceHtml}
+            ${distHtml}
+          </div>
+          <div class="card-name">${escHtml(place.name)}</div>
+          ${nameJp}
+        </div>
+        <button class="star-btn${isStarred ? ' starred' : ''}" data-name="${escHtml(place.name)}" aria-label="${isStarred ? 'Remove from saved' : 'Save place'}">${isStarred ? '★' : '☆'}</button>
+      </div>
+      <div class="card-desc">${escHtml(place.description)}</div>
+      <div class="card-address">${escHtml(place.address)}</div>
+      <div class="card-actions">
+        ${siteBtn}
+        <a class="btn-maps" href="${mapsSearchUrl(place)}" target="_blank" rel="noopener">↗ Maps</a>
+        ${dirBtn}
+      </div>
+    </div>`;
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── BROWSE LOGIC ─────────────────────────────────────────────────────
+let activeType = 'all';
+let activeNbhd = 'all';
+let activeSource = 'all';
+
+// Build neighbourhood chips dynamically
+const neighborhoods = [...new Set(PLACES.map(p => p.category))].sort();
+const nbhdChips = document.getElementById('neighborhoodChips');
+neighborhoods.forEach(n => {
+  const btn = document.createElement('button');
+  btn.className = 'chip';
+  btn.dataset.nbhd = n;
+  btn.textContent = n;
+  nbhdChips.appendChild(btn);
+});
+
+function getFilteredPlaces() {
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  return PLACES.filter(p => {
+    // type filter
+    if (activeType !== 'all') {
+      if (getFilterType(p.type) !== activeType) return false;
+    }
+    // neighbourhood filter
+    if (activeNbhd !== 'all' && p.category !== activeNbhd) return false;
+    // source filter
+    if (activeSource !== 'all' && (p.source || 'Tokyo Guide') !== activeSource) return false;
+    // search
+    if (q) {
+      const haystack = [p.name, p.name_jp, p.description, p.category, p.type, p.address]
+        .filter(Boolean).join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function renderBrowse() {
+  const filtered = getFilteredPlaces();
+  const list = document.getElementById('browseList');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('resultsCount');
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    count.textContent = 'No results';
+  } else {
+    empty.style.display = 'none';
+    count.textContent = `Showing ${filtered.length} place${filtered.length !== 1 ? 's' : ''}`;
+    list.innerHTML = filtered.map(p => buildCardHTML(p, false)).join('');
+  }
+}
+
+// Type chips
+document.getElementById('typeChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  activeType = chip.dataset.type;
+  renderBrowse();
+});
+
+// Neighbourhood chips
+document.getElementById('neighborhoodChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#neighborhoodChips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  activeNbhd = chip.dataset.nbhd;
+  renderBrowse();
+});
+
+// Source chips
+document.getElementById('sourceChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#sourceChips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  activeSource = chip.dataset.source;
+  renderBrowse();
+});
+
+// Search input
+document.getElementById('searchInput').addEventListener('input', renderBrowse);
+
+// Initial render
+renderBrowse();
+renderStarred();
+
+// ── STAR BUTTON DELEGATION ────────────────────────────────────────────
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.star-btn');
+  if (btn) { toggleStar(btn.dataset.name); e.stopPropagation(); }
+});
+
+// ── TABS ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    btn.setAttribute('aria-selected', 'true');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'starred') renderStarred();
+  });
+});
+
+// ── NEAR ME LOGIC ────────────────────────────────────────────────────
+const locateBtn = document.getElementById('locateBtn');
+const nearmeStatus = document.getElementById('nearmeStatus');
+const nearmeList = document.getElementById('nearmeList');
+const nearmeFilters = document.getElementById('nearmeFilters');
+
+let nearmeActiveType = 'all';
+let nearmeAllPlaces = []; // sorted by distance, full set
+
+function renderNearmeList() {
+  const filtered = nearmeActiveType === 'all'
+    ? nearmeAllPlaces
+    : nearmeAllPlaces.filter(p => getFilterType(p.type) === nearmeActiveType);
+  nearmeList.innerHTML = filtered.length
+    ? filtered.map(p => buildCardHTML(p, true)).join('')
+    : '<div class="empty-state" style="display:block">No places found for this type.</div>';
+  nearmeStatus.textContent = `Showing ${filtered.length} of ${nearmeAllPlaces.length} places`;
+}
+
+document.getElementById('nearmeTypeChips').addEventListener('click', e => {
+  const chip = e.target.closest('.chip');
+  if (!chip) return;
+  document.querySelectorAll('#nearmeTypeChips .chip').forEach(c => c.classList.remove('active'));
+  chip.classList.add('active');
+  nearmeActiveType = chip.dataset.type;
+  renderNearmeList();
+});
+
+locateBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) {
+    nearmeStatus.textContent = 'Geolocation is not supported by your browser.';
+    nearmeStatus.className = 'nearme-status error';
+    return;
+  }
+  locateBtn.disabled = true;
+  locateBtn.textContent = '… Locating';
+  nearmeStatus.textContent = 'Requesting location…';
+  nearmeStatus.className = 'nearme-status';
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const userLat = pos.coords.latitude;
+      const userLng = pos.coords.longitude;
+
+      nearmeAllPlaces = PLACES.map(p => {
+        const coords = NBHD_COORDS[p.category];
+        const dist = coords ? haversine(userLat, userLng, coords.lat, coords.lng) : Infinity;
+        return Object.assign({}, p, {_distance: dist});
+      }).sort((a, b) => a._distance - b._distance);
+
+      nearmeStatus.className = 'nearme-status';
+      locateBtn.textContent = '↯ Refresh location';
+      locateBtn.disabled = false;
+      nearmeFilters.style.display = 'block';
+      renderNearmeList();
+    },
+    err => {
+      let msg = 'Could not get location.';
+      if (err.code === 1) msg = 'Location access denied. Please enable location in your browser.';
+      else if (err.code === 2) msg = 'Location unavailable. Try again.';
+      else if (err.code === 3) msg = 'Location request timed out.';
+      nearmeStatus.textContent = msg;
+      nearmeStatus.className = 'nearme-status error';
+      locateBtn.textContent = '↯ Find places near me';
+      locateBtn.disabled = false;
+    },
+    {timeout: 10000, enableHighAccuracy: false}
+  );
+});
+</script>
+</body>
+</html>
