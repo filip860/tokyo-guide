@@ -170,6 +170,15 @@
     border-left: 3px solid var(--card-accent, #999);
     transition: background 0.15s;
     cursor: default;
+    overflow: hidden;
+  }
+  .card-image {
+    display: block;
+    width: calc(100% + 32px);
+    height: 130px;
+    margin: -14px -14px 12px -18px;
+    object-fit: cover;
+    filter: grayscale(100%) contrast(0.85) brightness(0.97);
   }
   @media (hover: hover) {
     .place-card:hover { background: #fdfcf8; }
@@ -512,7 +521,7 @@
     </div>
   </div>
 
-  <div class="results-count" id="resultsCount">Showing 185 places</div>
+  <div class="results-count" id="resultsCount">Showing 196 places</div>
 
   <div class="places-list" id="browseList"></div>
   <div class="empty-state" id="emptyState">No places found. Try a different search.</div>
@@ -856,7 +865,27 @@ const PLACES = [
 
   {"name":"Blue Bottle Coffee Aoyama","name_jp":"ブルーボトルコーヒー 青山カフェ","category":"AOYAMA","type":"cafe","address":"5 Chome-14-12 Minamiaoyama, Minato City, Tokyo 107-0062","phone":null,"url":"http://www.bluebottlecoffee.com","description":"A calm, minimal outpost of the celebrated specialty coffee brand in an atmospheric converted building in Aoyama. Exceptionally consistent coffee — a perfect pit stop on the Aoyama shopping circuit.","source":"Carl Lidefelt"},
 
-  {"name":"STRIDE LAB Tokyo","name_jp":"ストライドラボ 東京本店","category":"SHINJUKU","type":"shop","address":"Shinjuku, Shinjuku City, Tokyo","phone":null,"url":"N/A","description":"Specialty running store offering biomechanical gait analysis and expert shoe fitting. Staff analyze your stride on a treadmill to recommend the optimal footwear. The best running shoe shopping experience in Tokyo.","source":"Carl Lidefelt"}
+  {"name":"STRIDE LAB Tokyo","name_jp":"ストライドラボ 東京本店","category":"SHINJUKU","type":"shop","address":"Shinjuku, Shinjuku City, Tokyo","phone":null,"url":"N/A","description":"Specialty running store offering biomechanical gait analysis and expert shoe fitting. Staff analyze your stride on a treadmill to recommend the optimal footwear. The best running shoe shopping experience in Tokyo.","source":"Carl Lidefelt"},
+
+  {"name":"Hekkelun","name_jp":"ヘッケルン","category":"MINATO","type":"cafe","address":"1 Chome-20-11 Nishishinbashi, Minato City, Tokyo 105-0003","phone":"+81 3-3580-5661","url":"N/A","description":"A beloved old-school kissaten tucked between Toranomon and Shimbashi, cherished for its silky jumbo purin — a towering custard with deep caramel — served since the postwar era. Tiny, unhurried, and completely unreconstructed. No reservations, no website; arrive early.","source":"Carl Lidefelt"},
+
+  {"name":"INCredible COFFEE","name_jp":"インクレディブルコーヒー","category":"SUGINAMI","type":"cafe","address":"2 Chome-22-2 Koenjikita, Suginami City, Tokyo 166-0002","phone":null,"url":"N/A","description":"A beloved Koenji café where great coffee meets great music — the team hosts DJ sets and hip-hop nights alongside exceptionally good espresso. Neighbourhood regulars, friendly staff, and a distinct local character that sets it apart from the specialty coffee chain circuit.","source":"Carl Lidefelt"},
+
+  {"name":"Nerdy Dogs","name_jp":"ナーディドッグス","category":"SETAGAYA","type":"vintage","address":"1 Chome-45-2 Gotokuji, Setagaya City, Tokyo","phone":"+81 3-6413-1893","url":"N/A","description":"Vintage outdoor clothing specialist in the quiet Gotokuji neighbourhood, a short walk from the famous cat shrine. Packed with 1990s Patagonia, L.L.Bean, Lands' End and Osprey — the kind of worn-in American outdoor layers that are increasingly hard to find. Open 12:00–20:00.","source":"Carl Lidefelt"},
+
+  {"name":"BAZZSTORE Shimokitazawa","name_jp":"バズストア 下北沢","category":"KITAZAWA","type":"vintage","address":"2 Chome-31-13 Kitazawa, Setagaya City, Tokyo 155-0031","phone":null,"url":"http://ec.bazzstore.com","description":"One of 14 Tokyo BAZZSTORE branches, this Shimokitazawa outpost offers a well-curated rotating selection of branded secondhand clothing. Five minutes from Shimokitazawa Station's north exit; open 12:00–22:00 daily.","source":"Carl Lidefelt"},
+
+  {"name":"2000 Collectable Toys","name_jp":"2000コレクタブルトイズ","category":"SUGINAMI","type":"shop","address":"2 Chome-43-9 Koenjiminami, Suginami City, Tokyo","phone":null,"url":"N/A","description":"A treasure cave of vintage and collectible toys in Koenji — every inch of shelving from floor to ceiling loaded with rare figures, robots, and retro Japanese toys. Neighbouring Nakano Broadway for serious collectors. Open 12:00–21:00.","source":"Carl Lidefelt"},
+
+  {"name":"PukuPuku","name_jp":"プクプク","category":"MUSASHINO","type":"shop","address":"2 Chome-26-2 Kichijoji Honcho, Musashino City, Tokyo","phone":null,"url":"N/A","description":"Endearing antique and curio shop in Kichijoji with two branches on the west side of the station. Known for an eclectic mix of vintage housewares, ceramics, and oddities — the kind of place you stay far longer than planned.","source":"Carl Lidefelt"},
+
+  {"name":"Maguroya Kurogin","name_jp":"まぐろ屋 黒銀","category":"CHUO/TSUKIJI","type":"restaurant","address":"4 Chome-10-12 Tsukiji, Chuo City, Tokyo 104-0045","phone":null,"url":"http://www.maguroya-kurogin.com","description":"A Tsukiji Outer Market institution dedicated entirely to bluefin tuna. Rare cuts — otoro, chutoro, blood meat — served over rice or as sashimi at wooden counter seats. One of the best tuna experiences in the city; arrive before it runs out.","source":"Carl Lidefelt"},
+
+  {"name":"NY BISTRO by NO CODE","name_jp":"NYビストロ バイ ノーコード","category":"CHIYODA","type":"restaurant","address":"1 Chome-5-1 Marunouchi, Chiyoda City, Tokyo 100-6590, Shin-Marunouchi Building 7F","phone":"+81 3-4400-0198","url":"N/A","description":"The newest venture of Fumio Yonezawa — the first Japanese sous chef at three-Michelin-starred Jean-Georges in New York — translated into a casual bistro overlooking the Marunouchi skyline. Kobe beef burgers at lunch, natural wines and bistro plates at dinner. Cashless only.","source":"Carl Lidefelt"},
+
+  {"name":"Sushi Fukuzuka","name_jp":"鮨 福塚","category":"SHINJUKU","type":"restaurant","address":"2F 3-5 Tsukudo-cho, Shinjuku City, Tokyo","phone":null,"url":"N/A","description":"A discreet sushi counter tucked up a flight of stairs in a narrow Kagurazaka backstreet, five minutes from Iidabashi Station. Intimate and unhurried — the antithesis of busy central Tokyo sushi bars. Lunch and dinner service; reservations recommended.","source":"Carl Lidefelt"},
+
+  {"name":"Torishige","name_jp":"鳥繁","category":"SHIBUYA","type":"restaurant","address":"2 Chome-6-5 Yoyogi, Shibuya City, Tokyo","phone":null,"url":"N/A","description":"A long-running yakitori and kushiyaki specialist near Yoyogi, established in 1949. Premium charcoal from Kishu and high-grade pork and beef skewers alongside classic chicken cuts. An old Tokyo institution with the kind of atmosphere that modern izakayas try hard to recreate.","source":"Carl Lidefelt"}
 ];
 
 // ── NEIGHBOURHOOD COORDINATES ───────────────────────────────────────
@@ -1041,6 +1070,13 @@ function mapsDirectionsUrl(place) {
   return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(q);
 }
 
+// ── HERO IMAGE HELPER ────────────────────────────────────────────────
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
 // ── BUILD CARD HTML ──────────────────────────────────────────────────
 function buildCardHTML(place, showDistance) {
   const color = getTypeColor(place.type);
@@ -1058,8 +1094,10 @@ function buildCardHTML(place, showDistance) {
   const sourceHtml = (place.source && place.source !== 'Tokyo Guide')
     ? `<span class="card-source">via ${escHtml(place.source)}</span>`
     : '';
+  const imgSeed = simpleHash(place.name) % 1000;
   return `
     <div class="place-card" style="--card-accent:${color}">
+      <img class="card-image" src="https://picsum.photos/seed/${imgSeed}/600/130" alt="" loading="lazy">
       <div class="card-top">
         <span class="card-type-icon">${emoji}</span>
         <div class="card-main">
