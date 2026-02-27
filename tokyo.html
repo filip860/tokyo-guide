@@ -60,17 +60,21 @@
   }
   .tab-btn {
     flex: 1;
+    min-width: 0;
     background: none;
     border: none;
     border-bottom: 3px solid transparent;
-    padding: 12px 8px;
+    padding: 12px 4px;
     font-family: var(--font);
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--muted);
     cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     transition: color 0.2s, border-color 0.2s;
   }
   .tab-btn.active {
