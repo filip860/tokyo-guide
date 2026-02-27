@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(unzip:*)",
+      "Bash(python3:*)",
+      "Bash(node:*)",
+      "Bash(open:*)",
+      "WebFetch(domain:maps.app.goo.gl)",
+      "WebFetch(domain:www.google.com)",
+      "Bash(git:*)",
+      "Bash(gh repo:*)",
+      "Bash(vercel:*)",
+      "Bash(head:*)",
+      "Bash(security find-generic-password:*)",
+      "Bash(security:*)",
+      "Bash(gh auth:*)",
+      "Bash(# Create a private Gist to store starred places\necho '[]' | gh gist create --filename starred.json --desc \"Tokyo Guide - Starred Places\" 2>&1)",
+      "WebSearch",
+      "Bash(printf AIzaSyA12lQW-HGQGQXBM3_-_UdRqEE6BBrJtGA:*)",
+      "Bash(curl:*)",
+      "WebFetch(domain:www.figma.com)"
+    ]
+  }
+}

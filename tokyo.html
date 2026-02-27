@@ -406,7 +406,36 @@
     .controls { max-width: none; }
     .results-count { max-width: none; }
   }
+
+  /* ── NEIGHBOURHOOD TAB ── */
+  #nbhdMap { height: 280px; width: 100%; background: #e8e4dc; }
+  .nbhd-status { font-size: 0.72rem; color: var(--muted); text-align: center; padding: 8px 16px; min-height: 26px; letter-spacing: 0.05em; }
+  .nbhd-list { max-width: 740px; margin: 0 auto; }
+  .nbhd-card {
+    background: var(--card);
+    border-bottom: 1px solid #e0ded8;
+    border-left: 4px solid #c41e3a;
+    padding: 18px 16px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .nbhd-card.is-nearest {
+    border-left-color: #2a7a2a;
+    background: #f4faf4;
+  }
+  .nbhd-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .nbhd-name { font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .nbhd-name-jp { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .nbhd-ward { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; margin-top: 6px; }
+  .nbhd-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+  .nbhd-tag { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border: 1px solid var(--border); color: var(--text); }
+  .nbhd-desc { font-size: 0.82rem; color: #222; line-height: 1.72; }
+  .nbhd-nearest-badge { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; background: #2a7a2a; color: #fff; flex-shrink: 0; white-space: nowrap; align-self: flex-start; }
+  @media (min-width: 900px) {
+    #nbhdMap { height: 340px; }
+  }
 </style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 </head>
 <body>
 
@@ -419,6 +448,7 @@
   <button class="tab-btn active" role="tab" data-tab="browse" aria-selected="true">Browse</button>
   <button class="tab-btn" role="tab" data-tab="nearme" aria-selected="false">Near Me</button>
   <button class="tab-btn" role="tab" data-tab="starred" aria-selected="false">★ Saved</button>
+  <button class="tab-btn" role="tab" data-tab="areas" aria-selected="false">Areas</button>
 </nav>
 
 <!-- BROWSE TAB -->
@@ -492,6 +522,13 @@
   </div>
   <div class="places-list" id="starredList"></div>
   <div class="empty-state" id="starredEmpty">No saved places yet. Tap ☆ on any card to save it.</div>
+</section>
+
+<!-- AREAS TAB -->
+<section id="tab-areas" class="tab-panel" role="tabpanel">
+  <div id="nbhdMap"></div>
+  <div class="nbhd-status" id="nbhdStatus"></div>
+  <div class="nbhd-list" id="nbhdList"></div>
 </section>
 
 <script>
@@ -1163,6 +1200,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.setAttribute('aria-selected', 'true');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'starred') renderStarred();
+    if (btn.dataset.tab === 'areas') initNbhdMap();
   });
 });
 
@@ -1235,6 +1273,113 @@ locateBtn.addEventListener('click', () => {
     {timeout: 10000, enableHighAccuracy: false}
   );
 });
+
+// ── NEIGHBOURHOOD DATA ────────────────────────────────────────────────
+const NEIGHBOURHOODS = [
+  { id: 'AOYAMA', name: 'Aoyama', name_jp: '青山', ward: 'Minato-ku / Shibuya-ku', tags: ['Architecture', 'Luxury', 'Design'], lat: 35.6636, lng: 139.7204, description: "Aoyama operates at a frequency slightly below the city's usual roar — wide zelkova-lined avenues pass flagship stores designed by Tadao Ando and Kengo Kuma, while gallery basements and unmarked bars reward those who linger past the storefronts. This is Tokyo's intersection of serious money and serious taste: fashion directors, architects, and art buyers who want Omotesando's prestige without Harajuku's chaos. The National Children's Castle grounds and the Nezu Museum's moss garden offer surprising moments of quiet in a neighbourhood otherwise engineered for beautiful expenditure." },
+  { id: 'SHIBUYA', name: 'Shibuya', name_jp: '渋谷', ward: 'Shibuya-ku', tags: ['Crossings', 'Youth', 'Reinvention'], lat: 35.6580, lng: 139.7016, description: "The scramble crossing is real — five streams of pedestrians collide and untangle every two minutes under a wall of video screens — but Shibuya is more than its own postcard: a perpetual construction site of identity, where the 2024 Sakura Stage towers loom above century-old shotengai and 1970s love hotels. Teenagers set trends at 109, the resurgent Nishihara side streets prove the neighbourhood keeps reinventing block by block, and after midnight the area becomes Tokyo's most densely lit club district. Come at 11 p.m. on a Friday and feel the controlled delirium of a city that never intended to stop." },
+  { id: 'SHINJUKU', name: 'Shinjuku', name_jp: '新宿', ward: 'Shinjuku-ku', tags: ['Neon', 'Nightlife', 'Contradiction'], lat: 35.6938, lng: 139.7034, description: "Shinjuku holds contradictions without apology: the world's busiest train station feeds into a sober garden of raked gravel and pine trees, which in turn gives way to Kabukichō's host clubs and pachinko parlours, and then to Golden Gai — forty-something narrow alleyways where 200 bars, each barely larger than a wardrobe, serve academics, jazz musicians, and anyone willing to squeeze in. The western skyscraper district projects the world's largest building-scale projection mapping show nightly onto the Metropolitan Government towers, while Omoide Yokochō still fills with yakitori smoke as it has since 1945. No single version of this place is wrong." },
+  { id: 'KITAZAWA', name: 'Shimokitazawa', name_jp: '下北沢', ward: 'Setagaya-ku', tags: ['Vinyl', 'Live Houses', 'Thrift'], lat: 35.6614, lng: 139.6678, description: "Shimokitazawa smells like old denim and curry — the vintage shops packed into its narrow lanes have been the city's best secondhand hunting ground for decades, and the live houses (small, sweaty, serious) have launched most of Japan's indie bands since the 1980s. The recent Bonus Track development threaded under the old railway tracks brought craft beer gardens and independent bookshops without erasing the neighbourhood's essential friction: you still have to navigate past a handmade-sign shop and a used-record store to find your coffee. Students, musicians, and the deliberately unhurried call this Tokyo's best few square kilometres." },
+  { id: 'SUGINAMI', name: 'Koenji', name_jp: '高円寺', ward: 'Suginami-ku', tags: ['Punk', 'Vintage', 'Izakaya'], lat: 35.7073, lng: 139.6493, description: "Where Shimokitazawa leans bohemian, Koenji leans raw: this is the ward that birthed Japanese punk in the 1970s, and that DNA is still audible in the live houses off the south exit that host hardcore shows on weeknights. Vintage shops here skew more menswear, military surplus, and Showa-era curiosities than any comparable strip in the city, and the izakaya stay open until the trains restart, packed with art-school alumni and neighbourhood lifers who have resisted every pressure to move somewhere glossier. The August Awa-Odori festival packs 300,000 people into streets that feel like they belong to a smaller, more honest city." },
+  { id: 'ROPPONGI', name: 'Roppongi', name_jp: '六本木', ward: 'Minato-ku', tags: ['Art Museums', 'Expats', 'After Dark'], lat: 35.6628, lng: 139.7308, description: "Roppongi has always had a split personality and leans into it: by day the Art Triangle — the Mori Museum perched 52 floors up, the National Art Center's undulating glass facade, the Suntory Museum of Art in the Tokyo Midtown complex — makes it the densest concentration of contemporary art real estate in Asia. By night it belongs to the cosmopolitan crowd of expats, off-duty diplomats, and visitors working through a list of clubs that have been cycling through names since disco was new. The annual Roppongi Art Night spreads 50-plus installations through the streets, suggesting the neighbourhood is slowly learning to reconcile its two selves." },
+  { id: 'TAITO', name: 'Asakusa', name_jp: '浅草', ward: 'Taitō-ku', tags: ['Edo', 'Senso-ji', 'Craft'], lat: 35.7114, lng: 139.7967, description: "Asakusa is where Tokyo's pre-war memory is most legible: the great Senso-ji temple, its Kaminarimon gate trailing a crimson lantern the size of a small car, anchors a neighbourhood of rickshaw drivers, sembei vendors, and craftsmen making folding fans and lacquerware in workshops their grandparents opened. The shitamachi merchant culture survives in the covered arcades, the ward still hosts 45 active geisha in its ochaya, and arriving before 8 a.m. on a weekday means the incense smoke and soft bell-striking at the temple belong almost entirely to locals and monks. The Hoppy Street izakaya strip and the Tokyo Skytree rising absurdly beyond the temple roof are reminders that the city has kept going regardless." },
+  { id: 'MEGURO', name: 'Nakameguro', name_jp: '中目黒', ward: 'Meguro-ku', tags: ['Canal', 'Third-Wave Coffee', 'Curated'], lat: 35.6431, lng: 139.6989, description: "The Meguro River cuts through Nakameguro so narrowly that cherry trees on opposite banks almost touch in April, and the neighbourhood has built its whole identity around that peculiar intimacy: low buildings, independent boutiques, roasters where the barista knows their single-origin supply chain by farm name, and restaurants with ten seats and no sign. The Koukashita strip beneath the elevated Tokyu tracks packs fifty more venues into a cement undercroft that manages to feel designed rather than improvised. This is the neighbourhood Tokyo's creative class aspires to: curated without being clinical, fashionable without ever becoming frantic." },
+  { id: 'MINATO', name: 'Minato / Azabu-Toranomon', name_jp: '港区', ward: 'Minato-ku', tags: ['Embassies', 'Towers', 'Quiet Money'], lat: 35.6568, lng: 139.7514, description: "Minato-ku concentrates more foreign embassies, international schools, and corporate headquarters per square kilometre than anywhere else in Japan, producing a neighbourhood that oscillates between discreet old wealth — Moto-Azabu's cobbled lanes with century-old tofu shops beside ambassadorial residences — and aggressive new money in the Toranomon Hills complex and the Azabudai Hills towers, the tallest buildings in Japan since their 2023 opening. Azabu-Jūban's 300-shop arcade still carries the unhurried rhythms of an Edo-period merchant quarter; two streets away, hedge fund managers eat at the same omakase counters as diplomats." },
+  { id: 'CHIYODA', name: 'Jimbocho', name_jp: '千代田 / 神保町', ward: 'Chiyoda-ku', tags: ['Books', 'Curry', 'Antiquarian'], lat: 35.6961, lng: 139.7575, description: "More than 130 specialist bookshops stack the same few blocks of Jimbocho, making it the largest concentration of secondhand and antiquarian booksellers on earth — you can find Edo-period woodblock prints, 1960s jazz magazines, French philosophy first editions, and vintage baseball cards within a 15-minute radius of the station. The neighbourhood also claims an improbable density of curry restaurants, a legacy of the publishing houses, universities, and generations of hungry editors that surround it. Afternoons here have a particular quality of arrested time: browsers move slowly, the smell of aged paper mixes with fenugreek, and the city's pace drops to something almost provincial." },
+  { id: 'CHUO/GINZA', name: 'Ginza', name_jp: '銀座', ward: 'Chūō-ku', tags: ['Flagship Stores', 'Omakase', 'Kabuki'], lat: 35.6717, lng: 139.7651, description: "Ginza is Tokyo's most deliberately beautiful commercial district — Chanel, Hermès, and Dior all commissioned landmark buildings here, and on weekends the central Chūō-dori boulevard closes to traffic entirely, becoming a pedestrian catwalk between department stores that predate the twentieth century. The basement sushi counters and rooftop omakase rooms represent the platonic ideal of the format: eight seats, one chef, fish flown in that morning. Kabuki-za theatre anchors the neighbourhood's cultural seriousness, and the silver-haired clientele of the coffee shops — many of which have been pouring the same single-origin blend for forty years — give Ginza its distinctive quality of accomplished, unruffled permanence." },
+  { id: 'CHUO/TSUKIJI', name: 'Tsukiji', name_jp: '築地', ward: 'Chūō-ku', tags: ['Seafood', 'Knives', 'Dawn'], lat: 35.6654, lng: 139.7706, description: "The wholesale tuna auction moved to Toyosu in 2018, but the Outer Market's 300-odd stalls still trade in the same dense theatre of pre-dawn activity: vendors filleting fish, visitors eating the best tamago-yaki of their lives, knife dealers sharpening blades that cost as much as laptops. The vacant 20-hectare inner market site is now earmarked for a massive Mitsui Fudosan redevelopment — stadium, hotels, residences — with first phases opening from 2026, meaning the neighbourhood sits in a last window of itself. Arrive at 6 a.m. on a weekday, before the tour groups, and Tsukiji still feels less like a destination than a working district that happens to feed the world's most demanding city." },
+  { id: 'NAKANO', name: 'Nakano', name_jp: '中野', ward: 'Nakano-ku', tags: ['Otaku', 'Showa Retro', 'Mandarake'], lat: 35.7089, lng: 139.6653, description: "Nakano Broadway is a monument to the proposition that obsession is its own form of connoisseurship: five floors of a mid-century shopping mall once intended to be upscale now contain every conceivable iteration of anime, manga, vintage toys, idol merchandise, rare vinyl, and antique dolls, anchored by the Mandarake chain that triggered the transformation when it opened here in 1980. The ambience is resolutely Showa — fluorescent lighting, hand-lettered price tags, the faint smell of old plastic — which makes it the antithesis of Akihabara's high-tech gleam. Outside the Broadway, Nakano is a genuine neighbourhood of ramen joints and local izakaya, popular with residents who chose it precisely because it refused to gentrify." },
+  { id: 'MUSASHINO', name: 'Kichijoji', name_jp: '吉祥寺', ward: 'Musashino-shi', tags: ['Inokashira Park', 'Harmonica Alleys', 'Livability'], lat: 35.7021, lng: 139.5801, description: "Kichijoji has topped surveys of Tokyo's most desirable places to live for ten consecutive years, and walking it makes the logic legible: Inokashira Park's boat lake and dense cherry canopy open directly off the shopping arcades, the Harmonica Yokocho alley packs a hundred tiny bars into a warren that evolved from a postwar black market, and the Ghibli Museum sits in the park's northwest corner like a rumour made architectural. It manages the difficult trick of feeling like a real town — hardware stores, family dentists, public library — while also sustaining the boutiques, record shops, and theatre venues that make it culturally alive." },
+  { id: 'KOTO', name: 'Kiyosumi-Shirakawa', name_jp: '清澄白河', ward: 'Kōtō-ku', tags: ['Specialty Coffee', 'Warehouses', 'Shitamachi'], lat: 35.6797, lng: 139.8022, description: "Kiyosumi-Shirakawa is what happens when the world's third-wave coffee movement lands in a neighbourhood of old timber warehouses and stone-yard storage sheds: Blue Bottle opened its first Japanese outpost here in 2015, and the area now hosts 30-plus roasters and specialty cafés in converted industrial spaces with exposed beams and pour-over bars. But the neighbourhood hasn't been entirely remade — the Meiji-era Kiyosumi Garden and the tofu shop and senbei maker who predated every barista by decades still anchor its edges, and the shitamachi residential character persists in the morning quiet between coffee rushes." },
+  { id: 'ARAKAWA', name: 'Yanaka', name_jp: '谷中', ward: 'Taitō-ku / Arakawa-ku', tags: ['Cats', 'Wooden Houses', 'Time Slip'], lat: 35.7215, lng: 139.7669, description: "Yanaka avoided the firebombing, avoided the bubble-era wrecking ball, and avoided most of what came after — leaving a neighbourhood of wooden merchant houses, steep temple staircases, and a cemetery that doubles as the neighbourhood park, where cherry trees grow over the graves of Meiji industrialists. The 170-metre Yanaka Ginza shotengai has around 60 shops selling grilled squid, sweet potatoes, and cat-themed ceramics (cats are a neighbourhood mascot here, as much cultural identifier as actual feral population). It draws visitors who find Asakusa too polished: artists, photographers, elderly locals doing their morning shopping, and anyone who wants to feel what Tokyo's bones looked like before the reinforced concrete." },
+  { id: 'TOSHIMA', name: 'Ikebukuro', name_jp: '池袋', ward: 'Toshima-ku', tags: ['Otome Road', 'Department Stores', 'Unfiltered'], lat: 35.7295, lng: 139.7109, description: "Ikebukuro is Shinjuku without the polish — a major terminus where Tobu and Seibu department stores face each other across a station that moves three million people daily, and where the confusion is treated as a feature rather than a bug. The east side belongs to Sunshine City's Pokémon Centre and Otome Road, the manga and BL merchandise strip oriented toward female fans that explicitly positions itself as the feminine counterpart to Akihabara; the west side belongs to Chinatown restaurants, karaoke rooms, and izakaya open until the trains restart. There is nothing aspirational about Ikebukuro, which is precisely why Tokyoites bored of aspirational neighbourhoods love it." },
+  { id: 'SETAGAYA', name: 'Setagaya', name_jp: '世田谷', ward: 'Setagaya-ku', tags: ['Boroichi', 'Sangenjaya', 'Slow Living'], lat: 35.6468, lng: 139.6530, description: "Tokyo's most populated ward wears its scale lightly — tree-lined residential streets, neighbourhood shotengai where butchers and fishmongers have traded for generations, and pockets of genuine local culture in Sangenjaya (craft beer, live jazz, a slightly younger Shimokitazawa energy). The Boroichi flea market, running since 1578, transforms the old Gotenmichi street twice each winter into 700 stalls of antique kimono, Meiji ceramics, and handmade leatherwork — one of the oldest continuously operating markets in Japan. Families, working creatives, and long-term foreign residents choose Setagaya because it doesn't perform Tokyo; it just gets on with being a city that works." },
+  { id: 'MITAKA', name: 'Mitaka', name_jp: '三鷹', ward: 'Mitaka-shi', tags: ['Ghibli Museum', 'Forest', 'Leafy Suburb'], lat: 35.6834, lng: 139.5590, description: "Mitaka is where Hayao Miyazaki actually lives, and the neighbourhood around Inokashira Park's western edge has absorbed that association without leaning on it too hard: the Ghibli Museum sits in the park's trees as a purposefully unmarked building that requires an advance ticket and rewards childhood attention, and a Cat Bus shuttle runs to it on weekends with entirely earnest intent. Beyond the museum, Mitaka is simply a very good Tokyo suburb — wide pavements, local izakaya with hand-written menus, the Tamagawa canal cycling path, and a pace of life the city centre abandoned decades ago." },
+  { id: 'BUNKYO', name: 'Bunkyo', name_jp: '文京', ward: 'Bunkyo-ku', tags: ['Academia', 'Gardens', 'Literary'], lat: 35.7080, lng: 139.7528, description: "Bunkyo — its name combining the characters for 'literature' and 'capital' — is Tokyo's intellectual anchor: the Hongo campus of Tokyo University occupies a former shogunal estate, surrounded by the medical hospitals, publishing houses, and specialist libraries that accumulated over 150 years of institutional gravity. The ward's three great gardens (Rikugien, Koishikawa Kōrakuen, and Koishikawa Botanical Garden) offer some of the city's most unhurried green space, designed for contemplation rather than recreation. Visitors who find their way here encounter a Tokyo that feels academically serious and spatially generous — not a performance of old Japan, but a neighbourhood where the nineteenth and twenty-first centuries coexist without apparent tension." },
+];
+
+// ── NEIGHBOURHOOD MAP ─────────────────────────────────────────────────
+let nbhdMapInstance = null;
+const nbhdMarkers = {};
+let nbhdNearestId = null;
+
+function initNbhdMap() {
+  if (nbhdMapInstance) return;
+  renderNbhdList();
+
+  const map = L.map('nbhdMap', { zoomControl: true }).setView([35.682, 139.703], 11);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors &copy; <a href="https://carto.com">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19,
+  }).addTo(map);
+
+  NEIGHBOURHOODS.forEach(n => {
+    const m = L.circleMarker([n.lat, n.lng], {
+      radius: 8, fillColor: '#c41e3a', fillOpacity: 0.8, color: '#fff', weight: 2,
+    }).addTo(map);
+    m.bindTooltip(n.name, { direction: 'top', className: 'nbhd-tooltip' });
+    m.on('click', () => {
+      document.getElementById('nbhd-card-' + n.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    nbhdMarkers[n.id] = m;
+  });
+
+  nbhdMapInstance = map;
+  detectNbhd();
+}
+
+function detectNbhd() {
+  if (!navigator.geolocation) return;
+  const statusEl = document.getElementById('nbhdStatus');
+  statusEl.textContent = 'Detecting your location…';
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const ulat = pos.coords.latitude, ulng = pos.coords.longitude;
+      let nearest = null, minDist = Infinity;
+      NEIGHBOURHOODS.forEach(n => {
+        const d = haversine(ulat, ulng, n.lat, n.lng);
+        if (d < minDist) { minDist = d; nearest = n; }
+      });
+
+      L.circleMarker([ulat, ulng], {
+        radius: 7, fillColor: '#1a73e8', fillOpacity: 0.9, color: '#fff', weight: 2,
+      }).addTo(nbhdMapInstance).bindTooltip('You are here', { direction: 'top', permanent: false });
+
+      if (nearest) {
+        nbhdNearestId = nearest.id;
+        nbhdMarkers[nearest.id].setStyle({ fillColor: '#2a7a2a', radius: 11 });
+        nbhdMapInstance.flyTo([nearest.lat, nearest.lng], 13);
+        statusEl.textContent = 'You are in or near ' + nearest.name + ' (' + (minDist / 1000).toFixed(1) + ' km from centre).';
+        renderNbhdList();
+        setTimeout(() => document.getElementById('nbhd-card-' + nearest.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 900);
+      } else {
+        statusEl.textContent = '';
+      }
+    },
+    () => { document.getElementById('nbhdStatus').textContent = ''; },
+    { timeout: 10000, enableHighAccuracy: false }
+  );
+}
+
+function renderNbhdList() {
+  document.getElementById('nbhdList').innerHTML = NEIGHBOURHOODS.map(n => {
+    const isNearest = n.id === nbhdNearestId;
+    const badge = isNearest ? '<span class="nbhd-nearest-badge">★ You are here</span>' : '';
+    const tags = n.tags.map(t => `<span class="nbhd-tag">${escHtml(t)}</span>`).join('');
+    return `<div class="nbhd-card${isNearest ? ' is-nearest' : ''}" id="nbhd-card-${n.id}" onclick="if(nbhdMapInstance)nbhdMapInstance.flyTo([${n.lat},${n.lng}],14)">
+      <div class="nbhd-card-header">
+        <div><div class="nbhd-name">${escHtml(n.name)}</div><div class="nbhd-name-jp">${escHtml(n.name_jp)}</div></div>
+        ${badge}
+      </div>
+      <div class="nbhd-ward">${escHtml(n.ward)}</div>
+      <div class="nbhd-tags">${tags}</div>
+      <div class="nbhd-desc">${escHtml(n.description)}</div>
+    </div>`;
+  }).join('');
+}
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 </body>
 </html>
