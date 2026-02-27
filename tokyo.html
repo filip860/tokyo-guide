@@ -449,13 +449,6 @@
       <button class="chip active" data-nbhd="all">All</button>
     </div>
 
-    <div class="filter-label">Source</div>
-    <div class="chips-row" id="sourceChips">
-      <button class="chip active" data-source="all">All</button>
-      <button class="chip" data-source="Swedish Friend">Swedish Friend</button>
-      <button class="chip" data-source="Max Schiller">Max Schiller</button>
-      <button class="chip" data-source="Carl Lidefelt">Carl Lidefelt</button>
-    </div>
   </div>
 
   <div class="results-count" id="resultsCount">Showing 196 places</div>
@@ -1075,7 +1068,6 @@ loadRatings().catch(() => {});
 
 let activeType = 'all';
 let activeNbhd = 'all';
-let activeSource = 'all';
 
 // Build neighbourhood chips dynamically
 const neighborhoods = [...new Set(PLACES.map(p => p.category))].sort();
@@ -1097,8 +1089,6 @@ function getFilteredPlaces() {
     }
     // neighbourhood filter
     if (activeNbhd !== 'all' && p.category !== activeNbhd) return false;
-    // source filter
-    if (activeSource !== 'all' && (p.source || 'Tokyo Guide') !== activeSource) return false;
     // search
     if (q) {
       const haystack = [p.name, p.name_jp, p.description, p.category, p.type, p.address]
@@ -1147,15 +1137,6 @@ document.getElementById('neighborhoodChips').addEventListener('click', e => {
   renderBrowse();
 });
 
-// Source chips
-document.getElementById('sourceChips').addEventListener('click', e => {
-  const chip = e.target.closest('.chip');
-  if (!chip) return;
-  document.querySelectorAll('#sourceChips .chip').forEach(c => c.classList.remove('active'));
-  chip.classList.add('active');
-  activeSource = chip.dataset.source;
-  renderBrowse();
-});
 
 // Search input
 document.getElementById('searchInput').addEventListener('input', renderBrowse);
